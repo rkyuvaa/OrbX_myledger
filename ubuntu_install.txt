@@ -1,0 +1,73 @@
+ORBX MY LEDGER — UBUNTU INSTALLATION & DEPLOYMENT GUIDE
+======================================================
+
+Follow these instructions to install, build, and deploy the application on an Ubuntu server.
+
+STEP 1: INSTALL DOCKER & DOCKER COMPOSE
+---------------------------------------
+If you do not have Docker installed on your Ubuntu machine, run these commands:
+
+# Update package database
+sudo apt update
+
+# Install prerequisites
+sudo apt install -y apt-transport-https ca-certificates curl software-properties-common gnupg lsb-release
+
+# Add Docker's official GPG key
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Set up the stable repository
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Install Docker Engine & Compose plugin
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+# Verify installations
+docker --version
+docker compose version
+
+
+STEP 2: CLONE THE CODEBASE
+--------------------------
+Clone this repository onto your Ubuntu machine:
+
+git clone https://github.com/rkyuvaa/OrbX_myledger.git
+cd OrbX_myledger
+
+
+STEP 3: CONFIGURE ENVIRONMENT KEYS
+----------------------------------
+Create a production environment variables config file:
+
+cp backend/.env.example backend/.env
+
+(Optional: You can edit backend/.env using `nano backend/.env` to configure ports, credentials, or custom financial years).
+
+
+STEP 4: SPIN UP CONTAINERS
+--------------------------
+Build, launch, and run the services in the background:
+
+sudo docker compose up --build -d
+
+To verify that all services (db, backend, frontend, nginx) are running:
+sudo docker compose ps
+
+
+STEP 5: RUN DATABASE MIGRATIONS & SEED DATA
+-------------------------------------------
+Apply database tables schemas and register default seed credentials:
+
+sudo docker compose exec backend bash init.sh
+
+
+STEP 6: ACCESS THE APPLICATION
+------------------------------
+* Frontend Web Dashboard: Open browser at http://<your-server-ip> (port 80)
+* API Swagger Interactive Docs: Navigate to http://<your-server-ip>/docs
+
+Initial Seed Credentials:
+- Email/Username: admin@orbxledger.com
+- Password: Admin@123
