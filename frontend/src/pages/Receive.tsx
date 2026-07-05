@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle2, Landmark, Wallet, Edit2, PlusCircle, ArrowLeft, X } from 'lucide-react';
 import api from '../lib/api';
+import { useToastStore } from '../store/toastStore';
 
 export const Receive: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const addToast = useToastStore((state) => state.addToast);
   
   // Wizard Step State (1-8 for inputs, 9 for summary)
   const [step, setStep] = useState(1);
@@ -23,7 +25,6 @@ export const Receive: React.FC = () => {
   const [valNarration, setValNarration] = useState('');
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Suggestions state
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -126,12 +127,12 @@ export const Receive: React.FC = () => {
         saveToHistory('myledger_receive_references', valReferenceNumber);
       }
 
-      setSuccessMessage(`Receipt entry posted successfully! Voucher Number: ${data.voucher_number}`);
+      addToast(`Receipt entry posted successfully! Voucher Number: ${data.voucher_number}`, 'success');
       
       // Navigate back to dashboard automatically to close the popup view
       setTimeout(() => {
         navigate('/dashboard');
-      }, 300);
+      }, 150);
     },
     onError: (err: any) => {
       setErrorMessage(err.response?.data?.detail || 'An error occurred while posting receipt voucher.');
@@ -140,7 +141,6 @@ export const Receive: React.FC = () => {
 
   const submitTransaction = () => {
     setErrorMessage(null);
-    setSuccessMessage(null);
 
     const payload = {
       date: valDate,
@@ -185,13 +185,6 @@ export const Receive: React.FC = () => {
       </div>
 
       {/* Alerts */}
-      {successMessage && (
-        <div className="p-4 bg-green-50 text-green-700 rounded-xl flex items-start gap-2 text-sm border border-green-100 animate-in fade-in duration-200">
-          <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600" />
-          <span>{successMessage}</span>
-        </div>
-      )}
-
       {errorMessage && (
         <div className="p-4 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-sm border border-red-100 animate-in fade-in duration-200">
           <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
