@@ -27,10 +27,32 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ totalBalance, accounts
     };
   }, [showPopup]);
 
-  const formattedTotal = new Intl.NumberFormat('en-IN', {
+  const bankTotal = accounts
+    .filter(acc => acc.account_type === 'bank')
+    .reduce((sum, acc) => sum + acc.balance, 0);
+
+  const cashTotal = accounts
+    .filter(acc => acc.account_type === 'cash')
+    .reduce((sum, acc) => sum + acc.balance, 0);
+
+  const formattedBankTotal = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
-  }).format(totalBalance);
+  }).format(bankTotal);
+
+  const formattedCashTotal = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+  }).format(cashTotal);
+
+  const tileStyles = [
+    { bg: 'bg-[#f0f9ff] border-[#bae6fd]', text: 'text-[#0369a1]', label: 'text-[#0284c7]' }, // Sky Blue
+    { bg: 'bg-[#faf5ff] border-[#e9d5ff]', text: 'text-[#6b21a8]', label: 'text-[#7e22ce]' }, // Purple
+    { bg: 'bg-[#fffbeb] border-[#fde68a]', text: 'text-[#92400e]', label: 'text-[#b45309]' }, // Amber
+    { bg: 'bg-[#f0fdfa] border-[#99f6e4]', text: 'text-[#115e59]', label: 'text-[#0f766e]' }, // Teal
+    { bg: 'bg-[#fef2f2] border-[#fecaca]', text: 'text-[#991b1b]', label: 'text-[#b91c1c]' }, // Red
+    { bg: 'bg-[#f7fee7] border-[#d9f99d]', text: 'text-[#3f6212]', label: 'text-[#4d7c0f]' }, // Lime
+  ];
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -85,47 +107,60 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ totalBalance, accounts
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto max-h-[50vh] space-y-6">
-              {/* Total Balance Card (Combined) */}
-              <div className="p-5 bg-gradient-to-br from-[#023020] to-[#011a12] text-white rounded-xl shadow-md">
-                <span className="text-xs uppercase tracking-wider text-[#8aa89f] font-semibold block mb-1">
-                  Total Combined Balance
-                </span>
-                <span className="text-3xl font-extrabold tracking-tight block">
-                  {formattedTotal}
-                </span>
+            <div className="p-5 space-y-4">
+              {/* Separate Bank & Cash Total Cards */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3.5 bg-gradient-to-br from-[#023020] to-[#011a12] text-white rounded-xl shadow-sm">
+                  <span className="text-[10px] uppercase tracking-wider text-[#8aa89f] font-bold block mb-0.5">
+                    Bank Total
+                  </span>
+                  <span className="text-lg font-extrabold tracking-tight block">
+                    {formattedBankTotal}
+                  </span>
+                </div>
+                <div className="p-3.5 bg-gradient-to-br from-[#0e5a40] to-[#083a28] text-white rounded-xl shadow-sm">
+                  <span className="text-[10px] uppercase tracking-wider text-[#aed0c7] font-bold block mb-0.5">
+                    Cash Total
+                  </span>
+                  <span className="text-lg font-extrabold tracking-tight block">
+                    {formattedCashTotal}
+                  </span>
+                </div>
               </div>
 
               {/* Account Breakup List */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#4a6b62] mb-3">
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#4a6b62] mb-2">
                   Account-wise Breakup
                 </h4>
-                <div className="space-y-3">
+                <div className="space-y-1.5">
                   {accounts.length === 0 ? (
-                    <p className="text-sm text-[#8aa89f] py-2">No accounts configured</p>
+                    <p className="text-xs text-[#8aa89f] py-1">No accounts configured</p>
                   ) : (
-                    accounts.map((acc) => (
-                      <div 
-                        key={acc.id} 
-                        className="flex justify-between items-center p-4 bg-[#f8fafb] rounded-xl border border-[#e2e8e6]"
-                      >
-                        <div>
-                          <span className="font-bold text-base text-[#0d1f1a] block truncate max-w-[200px]" title={acc.name}>
-                            {acc.name}
-                          </span>
-                          <span className="text-xs text-[#8aa89f] capitalize font-medium">
-                            {acc.account_type} Account
+                    accounts.slice(0, 4).map((acc, index) => {
+                      const style = tileStyles[index % tileStyles.length];
+                      return (
+                        <div 
+                          key={acc.id} 
+                          className={`flex justify-between items-center py-2 px-3 rounded-lg border ${style.bg} ${style.border}`}
+                        >
+                          <div>
+                            <span className={`font-bold text-sm block truncate max-w-[220px] ${style.text}`} title={acc.name}>
+                              {acc.name}
+                            </span>
+                            <span className={`text-[10px] capitalize font-semibold ${style.label}`}>
+                              {acc.account_type} Account
+                            </span>
+                          </div>
+                          <span className={`font-bold text-sm ${style.text}`}>
+                            {new Intl.NumberFormat('en-IN', {
+                              style: 'currency',
+                              currency: 'INR',
+                            }).format(acc.balance)}
                           </span>
                         </div>
-                        <span className="font-bold text-lg text-[#023020]">
-                          {new Intl.NumberFormat('en-IN', {
-                            style: 'currency',
-                            currency: 'INR',
-                          }).format(acc.balance)}
-                        </span>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
