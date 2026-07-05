@@ -497,7 +497,7 @@ export const Receive: React.FC = () => {
                 <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider border-b pb-2 mb-2">Review Summary</h3>
                 
                 {/* Validation Warnings */}
-                {(!valDate || !valBranchId || !valReceivedFrom || Number(valAmount) <= 0 || (valPaymentMode === 'bank' && !valBankAccountId) || (valPaymentMode === 'cash' && !valCashAccountId) || (valPaymentMode === 'bank' && !valReferenceNumber)) && (
+                {(!valDate || !valBranchId || !valReceivedFrom || Number(valAmount) <= 0 || (valPaymentMode === 'bank' && !valBankAccountId) || (valPaymentMode === 'cash' && !valCashAccountId)) && (
                   <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-100 flex items-start gap-1.5">
                     <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
                     <div>
@@ -509,7 +509,6 @@ export const Receive: React.FC = () => {
                         {Number(valAmount) <= 0 && <li>Transaction Amount</li>}
                         {valPaymentMode === 'bank' && !valBankAccountId && <li>Deposit Bank Account</li>}
                         {valPaymentMode === 'cash' && !valCashAccountId && <li>Receive Cash Account</li>}
-                        {valPaymentMode === 'bank' && !valReferenceNumber && <li>Bank Reference Number</li>}
                       </ul>
                     </div>
                   </div>
@@ -588,8 +587,7 @@ export const Receive: React.FC = () => {
                       !valReceivedFrom || 
                       Number(valAmount) <= 0 || 
                       (valPaymentMode === 'bank' && !valBankAccountId) || 
-                      (valPaymentMode === 'cash' && !valCashAccountId) || 
-                      (valPaymentMode === 'bank' && !valReferenceNumber)
+                      (valPaymentMode === 'cash' && !valCashAccountId)
                     }
                     className="flex-1 btn-primary py-3 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                   >

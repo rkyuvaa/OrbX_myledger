@@ -171,8 +171,7 @@ async def create_receipt(
     if data.payment_mode == "bank":
         if not data.bank_account_id:
             raise HTTPException(status_code=422, detail="Bank account is required for bank payment mode")
-        if not data.reference_number:
-            raise HTTPException(status_code=422, detail="Reference number is mandatory for bank transactions")
+
 
     if data.payment_mode == "cash" and not data.cash_account_id:
         raise HTTPException(status_code=422, detail="Cash account is required for cash payment mode")
@@ -272,8 +271,7 @@ async def create_payment(
     if data.payment_mode == "bank":
         if not data.bank_account_id:
             raise HTTPException(status_code=422, detail="Bank account is required for bank payment mode")
-        if not data.reference_number:
-            raise HTTPException(status_code=422, detail="Reference number is mandatory for bank transactions")
+
 
     if data.payment_mode == "cash" and not data.cash_account_id:
         raise HTTPException(status_code=422, detail="Cash account is required for cash payment mode")
