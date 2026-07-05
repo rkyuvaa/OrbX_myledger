@@ -10,17 +10,29 @@ interface StatCardProps {
     type: 'up' | 'down';
     value: string;
   };
+  valueClass?: string;
+  iconClass?: string;
+  iconBgClass?: string;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, description, trend }) => {
+export const StatCard: React.FC<StatCardProps> = ({ 
+  title, 
+  value, 
+  icon: Icon, 
+  description, 
+  trend,
+  valueClass,
+  iconClass,
+  iconBgClass
+}) => {
   return (
     <div className="card card-hover flex flex-col justify-between min-h-[120px] p-5">
       <div className="flex items-start justify-between">
         <div>
           <span className="label text-xs uppercase tracking-wider">{title}</span>
-          <h3 className="text-2xl font-bold tracking-tight text-[#0d1f1a] mt-1">{value}</h3>
+          <h3 className={`text-2xl font-bold tracking-tight mt-1 ${valueClass || 'text-[#0d1f1a]'}`}>{value}</h3>
         </div>
-        <div className="p-2.5 rounded-lg bg-[#f1f5f4] text-[#023020]">
+        <div className={`p-2.5 rounded-lg ${iconBgClass || 'bg-[#f1f5f4]'} ${iconClass || 'text-[#023020]'}`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>

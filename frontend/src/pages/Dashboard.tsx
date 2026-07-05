@@ -2,12 +2,10 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowDownRight, ArrowUpRight, Wallet, Landmark, 
-  TrendingUp, TrendingDown, RefreshCw, Plus, ArrowUp, ArrowDown
+  ArrowDownRight, ArrowUpRight, Wallet, Landmark, Plus
 } from 'lucide-react';
 import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Cell, PieChart, Pie, Legend
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import api from '../lib/api';
 import { BalanceCard } from '../components/BalanceCard';
@@ -39,21 +37,13 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const { kpis, monthly_flow, top_branch_collections, recent_transactions } = dashboardData;
+  const { kpis, monthly_flow } = dashboardData;
 
   const totalBankAndCash = kpis.total_bank_balance + kpis.total_cash_balance;
 
   // Format currency helper
   const fmt = (val: number) => 
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
-
-  // Pie chart data
-  const pieData = kpis.account_tiles.map((tile: any) => ({
-    name: tile.name,
-    value: tile.balance,
-  })).filter((item: any) => item.value > 0);
-
-  const COLORS = ['#023020', '#00a86b', '#00c87f', '#4a6b62', '#8aa89f', '#10b981', '#34d399'];
 
   return (
     <div className="space-y-4">
@@ -72,9 +62,9 @@ export const Dashboard: React.FC = () => {
           </button>
           <button 
             onClick={() => navigate('/pay')}
-            className="flex-1 btn-outline text-base font-bold flex items-center justify-center gap-3 cursor-pointer shadow-sm rounded-2xl py-3 border-2 border-[#023020] hover:bg-[#023020]/5"
+            className="flex-1 btn-outline text-base font-bold flex items-center justify-center gap-3 cursor-pointer shadow-sm rounded-2xl py-3 border-2 border-red-800 text-red-800 hover:bg-red-50/50"
           >
-            <ArrowUpRight className="w-5 h-5 text-[#023020]" />
+            <ArrowUpRight className="w-5 h-5 text-red-800" />
             <span>Send Money</span>
           </button>
         </div>
@@ -87,12 +77,18 @@ export const Dashboard: React.FC = () => {
           value={fmt(kpis.today_receipts)} 
           icon={ArrowDownRight} 
           description="Total branch & direct collections" 
+          valueClass="text-emerald-700 font-extrabold"
+          iconBgClass="bg-emerald-50"
+          iconClass="text-emerald-800 font-bold"
         />
         <StatCard 
           title="Today's Payments" 
           value={fmt(kpis.today_payments)} 
           icon={ArrowUpRight} 
           description="Total branch & corporate payments" 
+          valueClass="text-red-600 font-extrabold"
+          iconBgClass="bg-red-50"
+          iconClass="text-red-600 font-bold"
         />
         <StatCard 
           title="Cash Balance" 
