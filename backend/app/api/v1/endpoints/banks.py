@@ -8,7 +8,7 @@ from app.models.auth import User
 from app.models.ledger import BankAccount, CashAccount
 from app.schemas.ledger import (
     BankAccountCreate, BankAccountUpdate, BankAccountOut,
-    CashAccountCreate, CashAccountOut,
+    CashAccountCreate, CashAccountUpdate, CashAccountOut,
 )
 from app.api.v1.endpoints.auth import get_current_user
 
@@ -68,7 +68,12 @@ async def update_bank(
         raise HTTPException(status_code=404, detail="Bank account not found")
 
     for field, value in body.model_dump(exclude_none=True).items():
-        setattr(bank, field, value)
+        if field == "opening_balance":
+            diff = value - bank.opening_balance
+            bank.current_balance += diff
+            bank.opening_balance = value
+        else:
+            setattr(bank, field, value)
 
     await db.commit()
     await db.refresh(bank)
@@ -100,3 +105,28 @@ async def list_cash_accounts(
 ):
     result = await db.execute(select(CashAccount).order_by(CashAccount.name))
     return result.scalars().all()
+
+
+@router.put("/cash/{cash_id}", response_model=CashAccountOut)
+async def update_cash(
+    cash_id: str,
+    body: CashAccountUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(CashAccount).where(CashAccount.id == cash_id))
+    cash = result.scalar_one_or_none()
+    if not cash:
+        raise HTTPException(status_code=404, detail="Cash account not found")
+
+    for field, value in body.model_dump(exclude_none=True).items():
+        if field == "opening_balance":
+            diff = value - cash.opening_balance
+            cash.current_balance += diff
+            cash.opening_balance = value
+        else:
+            setattr(cash, field, value)
+
+    await db.commit()
+    await db.refresh(cash)
+    return cash

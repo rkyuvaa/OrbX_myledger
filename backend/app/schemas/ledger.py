@@ -24,6 +24,8 @@ class BankAccountUpdate(BaseModel):
     account_number: Optional[str] = None
     ifsc_code: Optional[str] = None
     bank_branch_name: Optional[str] = None
+    opening_balance: Optional[float] = None
+    opening_date: Optional[date] = None
     is_overdraft_allowed: Optional[bool] = None
     status: Optional[str] = None
     notes: Optional[str] = None
@@ -55,6 +57,13 @@ class CashAccountCreate(BaseModel):
     opening_balance: float = 0.0
     opening_date: date
     status: str = "active"
+
+
+class CashAccountUpdate(BaseModel):
+    name: Optional[str] = None
+    opening_balance: Optional[float] = None
+    opening_date: Optional[date] = None
+    status: Optional[str] = None
 
 
 class CashAccountOut(BaseModel):

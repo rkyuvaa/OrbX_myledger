@@ -11,7 +11,7 @@ export const ConfigIndex: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ConfigTab>('banks');
 
   const tabs = [
-    { id: 'banks', label: 'Bank Accounts', icon: Landmark, component: Banks },
+    { id: 'banks', label: 'Bank & Cash Accounts', icon: Landmark, component: Banks },
     { id: 'branches', label: 'Branches (6+)', icon: GitBranch, component: Branches },
     { id: 'prefixes', label: 'Voucher Prefix Configuration', icon: Settings2, component: VoucherPrefixes },
     { id: 'profile', label: 'Company Profile & FY', icon: Building2, component: CompanyProfile },

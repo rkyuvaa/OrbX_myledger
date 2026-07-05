@@ -56,6 +56,32 @@ async def list_voucher_sequences(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    from app.services.voucher_service import get_current_fy
+    fy_start, fy_end = get_current_fy()
+    
+    # Ensure default sequences exist for current FY
+    for v_type in ["RCV", "PAY", "TRF"]:
+        result = await db.execute(
+            select(VoucherSequence).where(
+                VoucherSequence.voucher_type == v_type,
+                VoucherSequence.fy_start == fy_start,
+                VoucherSequence.fy_end == fy_end,
+            )
+        )
+        seq = result.scalar_one_or_none()
+        if not seq:
+            seq = VoucherSequence(
+                voucher_type=v_type,
+                prefix=v_type,
+                current_number=0,
+                fy_start=fy_start,
+                fy_end=fy_end,
+                padding=6,
+            )
+            db.add(seq)
+    
+    await db.commit()
+    
     result = await db.execute(select(VoucherSequence).order_by(VoucherSequence.voucher_type))
     return result.scalars().all()
 
