@@ -1,52 +1,33 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as zod from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { FileInput, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Landmark, Wallet, Edit2, PlusCircle, ArrowLeft } from 'lucide-react';
 import api from '../lib/api';
-import { ConfirmDialog } from '../components/ConfirmDialog';
-
-const receiveSchema = zod.object({
-  date: zod.string().min(1, 'Date is required'),
-  branch_id: zod.string().min(1, 'Branch is required'),
-  received_from: zod.string().min(1, 'Sender name is required'),
-  amount: zod.preprocess((val) => Number(val), zod.number().positive('Amount must be greater than zero')),
-  payment_mode: zod.enum(['bank', 'cash']),
-  bank_account_id: zod.string().optional(),
-  cash_account_id: zod.string().optional(),
-  reference_number: zod.string().optional(),
-  narration: zod.string().optional(),
-}).refine((data) => {
-  if (data.payment_mode === 'bank' && !data.bank_account_id) return false;
-  return true;
-}, {
-  message: 'Bank account selection is required',
-  path: ['bank_account_id'],
-}).refine((data) => {
-  if (data.payment_mode === 'bank' && !data.reference_number) return false;
-  return true;
-}, {
-  message: 'Reference number is mandatory for bank transactions',
-  path: ['reference_number'],
-}).refine((data) => {
-  if (data.payment_mode === 'cash' && !data.cash_account_id) return false;
-  return true;
-}, {
-  message: 'Cash account selection is required',
-  path: ['cash_account_id'],
-});
-
-type ReceiveFormValues = zod.infer<typeof receiveSchema>;
 
 export const Receive: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [formData, setFormData] = useState<ReceiveFormValues | null>(null);
+  
+  // Wizard Step State (1-8 for inputs, 9 for summary)
+  const [step, setStep] = useState(1);
+  
+  // Form Values
+  const [valDate, setValDate] = useState(new Date().toISOString().substring(0, 10));
+  const [valBranchId, setValBranchId] = useState('');
+  const [valReceivedFrom, setValReceivedFrom] = useState('');
+  const [valAmount, setValAmount] = useState('');
+  const [valPaymentMode, setValPaymentMode] = useState<'bank' | 'cash'>('bank');
+  const [valBankAccountId, setValBankAccountId] = useState('');
+  const [valCashAccountId, setValCashAccountId] = useState('');
+  const [valReferenceNumber, setValReferenceNumber] = useState('');
+  const [valNarration, setValNarration] = useState('');
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Suggestions state
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [refSuggestions, setRefSuggestions] = useState<string[]>([]);
 
   // Fetch Branches
   const { data: branches = [] } = useQuery({
@@ -69,61 +50,140 @@ export const Receive: React.FC = () => {
   const bankAccounts = accountsData?.bank_accounts || [];
   const cashAccounts = accountsData?.cash_accounts || [];
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    reset,
-    formState: { errors },
-  } = useForm<ReceiveFormValues>({
-    resolver: zodResolver(receiveSchema),
-    defaultValues: {
-      date: new Date().toISOString().substring(0, 10),
-      payment_mode: 'bank',
-    },
-  });
+  // LocalStorage Helpers for Autocomplete Senders/References
+  const getHistory = (key: string): string[] => {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  };
 
-  const paymentMode = watch('payment_mode');
+  const saveToHistory = (key: string, value: string) => {
+    if (!value || value.trim().length < 2) return;
+    try {
+      const history = getHistory(key);
+      const trimmed = value.trim();
+      if (!history.includes(trimmed)) {
+        history.push(trimmed);
+        localStorage.setItem(key, JSON.stringify(history.slice(-30)));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handlePartyChange = (text: string) => {
+    setValReceivedFrom(text);
+    if (text.trim().length >= 2) {
+      const hist = getHistory('myledger_receive_parties');
+      const filtered = hist.filter(name => name.toLowerCase().includes(text.toLowerCase()));
+      setSuggestions(filtered);
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleReferenceChange = (text: string) => {
+    setValReferenceNumber(text);
+    if (text.trim().length >= 2) {
+      const hist = getHistory('myledger_receive_references');
+      const filtered = hist.filter(ref => ref.toLowerCase().includes(text.toLowerCase()));
+      setRefSuggestions(filtered);
+    } else {
+      setRefSuggestions([]);
+    }
+  };
+
+  const handleSkip = () => {
+    if (step === 5) {
+      setValPaymentMode('bank');
+      setStep(6);
+    } else if (step === 8) {
+      setStep(9);
+    } else {
+      setStep((s) => s + 1);
+    }
+  };
 
   const mutation = useMutation({
-    mutationFn: async (data: ReceiveFormValues) => {
+    mutationFn: async (data: any) => {
       const res = await api.post('/receipts/', data);
       return res.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
       setSuccessMessage(`Receipt entry posted successfully! Voucher Number: ${data.voucher_number}`);
-      reset();
-      setShowConfirm(false);
+      
+      // Save input party & reference to suggestions history
+      saveToHistory('myledger_receive_parties', valReceivedFrom);
+      if (valReferenceNumber) {
+        saveToHistory('myledger_receive_references', valReferenceNumber);
+      }
+
+      // Reset Form and Step
+      setValDate(new Date().toISOString().substring(0, 10));
+      setValBranchId('');
+      setValReceivedFrom('');
+      setValAmount('');
+      setValPaymentMode('bank');
+      setValBankAccountId('');
+      setValCashAccountId('');
+      setValReferenceNumber('');
+      setValNarration('');
+      setStep(1);
     },
     onError: (err: any) => {
       setErrorMessage(err.response?.data?.detail || 'An error occurred while posting receipt voucher.');
-      setShowConfirm(false);
     },
   });
 
-  const handleFormSubmit = (values: ReceiveFormValues) => {
-    setFormData(values);
+  const submitTransaction = () => {
     setErrorMessage(null);
     setSuccessMessage(null);
-    setShowConfirm(true);
+
+    const payload = {
+      date: valDate,
+      branch_id: valBranchId,
+      received_from: valReceivedFrom,
+      amount: Number(valAmount),
+      payment_mode: valPaymentMode,
+      bank_account_id: valPaymentMode === 'bank' ? valBankAccountId : undefined,
+      cash_account_id: valPaymentMode === 'cash' ? valCashAccountId : undefined,
+      reference_number: valReferenceNumber || undefined,
+      narration: valNarration || undefined,
+    };
+
+    mutation.mutate(payload);
   };
 
-  const handleConfirmPost = () => {
-    if (formData) {
-      mutation.mutate(formData);
-    }
-  };
+  const fmt = (val: number) => 
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="page-header">
-        <div>
-          <h2 className="page-title">Receive Transaction</h2>
-          <p className="page-subtitle">Record cash or bank collections from branches</p>
+    <div className="max-w-2xl mx-auto space-y-6 relative min-h-[520px]">
+      {/* ─── HEADER (Always visible) ─── */}
+      <div className="bg-[#023020] text-white p-5 rounded-2xl shadow-md border border-[#011a12]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400">Transaction Mode</span>
+            <h2 className="text-xl font-bold mt-0.5">Receive Transaction (Receipt)</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-right">
+            <div>
+              <span className="text-[9px] uppercase tracking-wider text-[#8aa89f] font-semibold">Selected Date</span>
+              <p className="text-sm font-bold">{valDate ? new Date(valDate).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : 'Not Selected'}</p>
+            </div>
+            <div>
+              <span className="text-[9px] uppercase tracking-wider text-[#8aa89f] font-semibold">Voucher Number</span>
+              <p className="text-sm font-bold text-emerald-400">AUTO-GENERATED</p>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Alerts */}
       {successMessage && (
         <div className="p-4 bg-green-50 text-green-700 rounded-xl flex items-start gap-2 text-sm border border-green-100 animate-in fade-in duration-200">
           <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600" />
@@ -138,119 +198,424 @@ export const Receive: React.FC = () => {
         </div>
       )}
 
-      <div className="card bg-white p-6 shadow-sm">
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="label">Voucher Date</label>
-              <input type="date" className="input" {...register('date')} />
-              {errors.date && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.date.message}</p>}
-            </div>
+      {/* Backdrop representing the blurred rest of the screen */}
+      <div className="bg-white/40 border border-dashed border-[#e2e8e6] rounded-2xl p-12 text-center min-h-[300px] flex flex-col justify-center items-center gap-3">
+        <PlusCircle className="w-10 h-10 text-[#8aa89f]/40" />
+        <p className="text-sm text-[#8aa89f]">Guided sequential popup flow active in the center overlay.</p>
+        <button onClick={() => navigate('/dashboard')} className="btn-outline text-xs flex items-center gap-1.5 px-3 py-1.5">
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Dashboard</span>
+        </button>
+      </div>
 
-            <div>
-              <label className="label">Branch</label>
-              <select className="input select" {...register('branch_id')}>
-                <option value="">Select Branch</option>
-                {branches.filter((b: any) => b.status === 'active').map((branch: any) => (
-                  <option key={branch.id} value={branch.id}>
-                    {branch.name} ({branch.code})
-                  </option>
-                ))}
-              </select>
-              {errors.branch_id && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.branch_id.message}</p>}
+      {/* ─── GUIDED FLOW POPUP (Wizard Overlay) ─── */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-[#e2e8e6] flex flex-col relative animate-in zoom-in-95 duration-200">
+          
+          {/* Loading indicator */}
+          {mutation.isPending && (
+            <div className="absolute inset-0 bg-white/80 z-60 flex flex-col items-center justify-center rounded-3xl">
+              <div className="w-10 h-10 border-4 border-emerald-700 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-xs text-emerald-950 font-bold mt-3">Posting transaction voucher...</p>
             </div>
+          )}
+
+          {/* Step Progress Top Bar */}
+          <div className="px-6 pt-5 flex justify-between items-center text-[10px] font-bold text-[#8aa89f] uppercase tracking-wider">
+            <span>Step {step} of 8</span>
+            <span className="text-emerald-700 font-extrabold">{Math.round((step / 8) * 100)}% Complete</span>
+          </div>
+          <div className="w-full bg-[#f1f5f4] h-1.5 mt-3">
+            <div className="bg-emerald-600 h-1.5 transition-all duration-300" style={{ width: `${(step / 8) * 100}%` }}></div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="label">Received From</label>
-              <input type="text" placeholder="e.g. Branch Executive or Customer Name" className="input" {...register('received_from')} />
-              {errors.received_from && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.received_from.message}</p>}
-            </div>
-
-            <div>
-              <label className="label">Amount (₹)</label>
-              <input type="number" step="0.01" placeholder="0.00" className="input" {...register('amount')} />
-              {errors.amount && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.amount.message}</p>}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="label">Payment Mode</label>
-              <div className="flex gap-4 mt-2">
-                <label className="flex items-center gap-2 text-sm text-[#4a6b62] font-semibold">
-                  <input type="radio" value="bank" {...register('payment_mode')} className="accent-[#023020]" />
-                  <span>Bank Deposit</span>
-                </label>
-                <label className="flex items-center gap-2 text-sm text-[#4a6b62] font-semibold">
-                  <input type="radio" value="cash" {...register('payment_mode')} className="accent-[#023020]" />
-                  <span>Cash Handover</span>
-                </label>
+          {/* Step Content */}
+          <div className="p-6 flex-1 min-h-[200px] flex flex-col justify-center">
+            {step === 1 && (
+              <div className="space-y-4">
+                <h3 className="text-base font-bold text-[#0d1f1a]">Choose Transaction Date</h3>
+                <input 
+                  type="date" 
+                  value={valDate} 
+                  onChange={(e) => {
+                    setValDate(e.target.value);
+                    setTimeout(() => setStep(2), 250);
+                  }}
+                  className="input text-base font-semibold py-2.5"
+                />
               </div>
-            </div>
+            )}
 
-            {paymentMode === 'bank' ? (
-              <div>
-                <label className="label">Deposit Bank Account</label>
-                <select className="input select" {...register('bank_account_id')}>
-                  <option value="">Select Target Bank</option>
-                  {bankAccounts.map((bank: any) => (
-                    <option key={bank.id} value={bank.id}>
-                      {bank.name} (Bal: ₹{bank.current_balance})
-                    </option>
+            {step === 2 && (
+              <div className="space-y-4">
+                <h3 className="text-base font-bold text-[#0d1f1a]">Select Branch</h3>
+                <div className="grid grid-cols-1 gap-2 max-h-[180px] overflow-y-auto pr-1">
+                  {branches.filter((b: any) => b.status === 'active').map((branch: any) => (
+                    <button
+                      key={branch.id}
+                      onClick={() => {
+                        setValBranchId(branch.id);
+                        setStep(3);
+                      }}
+                      className={`w-full py-2.5 px-4 rounded-xl border text-left font-semibold text-sm transition-all cursor-pointer ${
+                        valBranchId === branch.id 
+                          ? 'bg-[#023020] text-white border-[#023020]' 
+                          : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#0d1f1a] border-[#e2e8e6]'
+                      }`}
+                    >
+                      {branch.name} ({branch.code})
+                    </button>
                   ))}
-                </select>
-                {errors.bank_account_id && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.bank_account_id.message}</p>}
+                </div>
               </div>
-            ) : (
-              <div>
-                <label className="label">Receive Cash Account</label>
-                <select className="input select" {...register('cash_account_id')}>
-                  <option value="">Select Cash Counter</option>
-                  {cashAccounts.map((cash: any) => (
-                    <option key={cash.id} value={cash.id}>
-                      {cash.name} (Bal: ₹{cash.current_balance})
-                    </option>
-                  ))}
-                </select>
-                {errors.cash_account_id && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.cash_account_id.message}</p>}
+            )}
+
+            {step === 3 && (
+              <div className="space-y-4 relative">
+                <h3 className="text-base font-bold text-[#0d1f1a]">Received From (Sender Name)</h3>
+                <input
+                  type="text"
+                  placeholder="e.g. Branch Executive or Customer Name"
+                  value={valReceivedFrom}
+                  onChange={(e) => handlePartyChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && valReceivedFrom.trim()) {
+                      setStep(4);
+                    }
+                  }}
+                  autoFocus
+                  className="input text-base font-semibold py-2.5"
+                />
+                {suggestions.length > 0 && (
+                  <div className="absolute left-0 right-0 z-55 bg-white border border-[#e2e8e6] rounded-xl shadow-lg mt-1 max-h-[120px] overflow-y-auto">
+                    {suggestions.map((name) => (
+                      <button
+                        key={name}
+                        onClick={() => {
+                          setValReceivedFrom(name);
+                          setSuggestions([]);
+                          setStep(4);
+                        }}
+                        className="w-full text-left py-2.5 px-4 hover:bg-[#f1f5f4] text-xs font-semibold text-[#0d1f1a] border-b border-[#f1f5f4] last:border-b-0 cursor-pointer"
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[10px] text-[#8aa89f]">Press Enter or tap suggestion to confirm</p>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="space-y-4">
+                <h3 className="text-base font-bold text-[#0d1f1a]">Enter Amount</h3>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-extrabold text-[#4a6b62]">₹</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={valAmount}
+                    onChange={(e) => setValAmount(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && Number(valAmount) > 0) {
+                        setStep(5);
+                      }
+                    }}
+                    autoFocus
+                    className="input pl-9 text-2xl font-extrabold py-2 text-emerald-950"
+                  />
+                </div>
+                <button
+                  disabled={Number(valAmount) <= 0}
+                  onClick={() => setStep(5)}
+                  className="w-full py-2.5 bg-[#023020] text-white rounded-xl font-bold text-sm hover:bg-[#034a31] disabled:opacity-50 cursor-pointer shadow-sm"
+                >
+                  Confirm Amount
+                </button>
+              </div>
+            )}
+
+            {step === 5 && (
+              <div className="space-y-4">
+                <h3 className="text-base font-bold text-[#0d1f1a]">Choose Payment Mode</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => {
+                      setValPaymentMode('bank');
+                      setStep(6);
+                    }}
+                    className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                      valPaymentMode === 'bank'
+                        ? 'bg-emerald-50 border-emerald-400 text-emerald-900 shadow-sm'
+                        : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
+                    }`}
+                  >
+                    <Landmark className="w-8 h-8" />
+                    <span className="font-bold text-xs">Bank Deposit</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setValPaymentMode('cash');
+                      setStep(6);
+                    }}
+                    className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                      valPaymentMode === 'cash'
+                        ? 'bg-emerald-50 border-emerald-400 text-emerald-900 shadow-sm'
+                        : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
+                    }`}
+                  >
+                    <Wallet className="w-8 h-8" />
+                    <span className="font-bold text-xs">Cash Handover</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 6 && (
+              <div className="space-y-4">
+                <h3 className="text-base font-bold text-[#0d1f1a]">
+                  Select {valPaymentMode === 'bank' ? 'Deposit Bank Account' : 'Receive Cash Account'}
+                </h3>
+                <div className="grid grid-cols-1 gap-2 max-h-[180px] overflow-y-auto pr-1">
+                  {valPaymentMode === 'bank' ? (
+                    bankAccounts.map((bank: any) => (
+                      <button
+                        key={bank.id}
+                        onClick={() => {
+                          setValBankAccountId(bank.id);
+                          setStep(7);
+                        }}
+                        className={`w-full py-2.5 px-4 rounded-xl border text-left font-semibold text-sm transition-all cursor-pointer ${
+                          valBankAccountId === bank.id 
+                            ? 'bg-[#023020] text-white border-[#023020]' 
+                            : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#0d1f1a] border-[#e2e8e6]'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center text-xs">
+                          <span>{bank.name}</span>
+                          <span className="opacity-80">Bal: ₹{bank.current_balance}</span>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    cashAccounts.map((cash: any) => (
+                      <button
+                        key={cash.id}
+                        onClick={() => {
+                          setValCashAccountId(cash.id);
+                          setStep(7);
+                        }}
+                        className={`w-full py-2.5 px-4 rounded-xl border text-left font-semibold text-sm transition-all cursor-pointer ${
+                          valCashAccountId === cash.id 
+                            ? 'bg-[#023020] text-white border-[#023020]' 
+                            : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#0d1f1a] border-[#e2e8e6]'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center text-xs">
+                          <span>{cash.name}</span>
+                          <span className="opacity-80">Bal: ₹{cash.current_balance}</span>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {step === 7 && (
+              <div className="space-y-4 relative">
+                <h3 className="text-base font-bold text-[#0d1f1a]">
+                  Reference Number {valPaymentMode === 'bank' ? <span className="text-red-500 font-bold">*</span> : '(Optional)'}
+                </h3>
+                <input
+                  type="text"
+                  placeholder="Transaction ID, Cheque, or Challan Number"
+                  value={valReferenceNumber}
+                  onChange={(e) => handleReferenceChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setStep(8);
+                    }
+                  }}
+                  autoFocus
+                  className="input text-base font-semibold py-2.5"
+                />
+                {refSuggestions.length > 0 && (
+                  <div className="absolute left-0 right-0 z-55 bg-white border border-[#e2e8e6] rounded-xl shadow-lg mt-1 max-h-[120px] overflow-y-auto">
+                    {refSuggestions.map((ref) => (
+                      <button
+                        key={ref}
+                        onClick={() => {
+                          setValReferenceNumber(ref);
+                          setRefSuggestions([]);
+                          setStep(8);
+                        }}
+                        className="w-full text-left py-2.5 px-4 hover:bg-[#f1f5f4] text-xs font-semibold text-[#0d1f1a] border-b border-[#f1f5f4] last:border-b-0 cursor-pointer"
+                      >
+                        {ref}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <p className="text-[10px] text-[#8aa89f]">Press Enter or tap suggestion to confirm</p>
+                  {valPaymentMode !== 'bank' && (
+                    <button onClick={() => setStep(8)} className="text-xs text-emerald-700 font-bold hover:underline cursor-pointer">Skip Reference</button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {step === 8 && (
+              <div className="space-y-4">
+                <h3 className="text-base font-bold text-[#0d1f1a]">Narration / Details</h3>
+                <textarea
+                  placeholder="Brief particulars or comments about receipt transaction"
+                  value={valNarration}
+                  onChange={(e) => setValNarration(e.target.value)}
+                  className="input h-20 resize-none font-medium text-sm"
+                ></textarea>
+                <button
+                  onClick={() => setStep(9)}
+                  className="w-full py-3 bg-emerald-800 text-white rounded-xl font-bold text-sm hover:bg-emerald-950 cursor-pointer shadow-md"
+                >
+                  Review Summary & Submit
+                </button>
+              </div>
+            )}
+
+            {step === 9 && (
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+                <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider border-b pb-2 mb-2">Review & Confirm</h3>
+                
+                {/* Validation Warnings */}
+                {(!valDate || !valBranchId || !valReceivedFrom || Number(valAmount) <= 0 || (valPaymentMode === 'bank' && !valBankAccountId) || (valPaymentMode === 'cash' && !valCashAccountId) || (valPaymentMode === 'bank' && !valReferenceNumber)) && (
+                  <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-100 flex items-start gap-1.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+                    <div>
+                      <p className="font-bold">Required field(s) missing or invalid:</p>
+                      <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                        {!valDate && <li>Voucher Date</li>}
+                        {!valBranchId && <li>Branch Location</li>}
+                        {!valReceivedFrom && <li>Sender (Received From)</li>}
+                        {Number(valAmount) <= 0 && <li>Transaction Amount</li>}
+                        {valPaymentMode === 'bank' && !valBankAccountId && <li>Deposit Bank Account</li>}
+                        {valPaymentMode === 'cash' && !valCashAccountId && <li>Receive Cash Account</li>}
+                        {valPaymentMode === 'bank' && !valReferenceNumber && <li>Bank Reference Number</li>}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {/* Summary Grid */}
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="bg-[#f8fafb] p-2.5 rounded-lg border border-[#e2e8e6] flex justify-between items-center col-span-2">
+                    <div>
+                      <span className="text-[9px] text-[#8aa89f] font-bold block">DATE</span>
+                      <span className="font-semibold text-[#0d1f1a]">{valDate || 'Not set'}</span>
+                    </div>
+                    <button onClick={() => setStep(1)} className="p-1 hover:bg-[#f1f5f4] rounded text-emerald-800 cursor-pointer"><Edit2 className="w-3.5 h-3.5" /></button>
+                  </div>
+
+                  <div className="bg-[#f8fafb] p-2.5 rounded-lg border border-[#e2e8e6] flex justify-between items-center col-span-2">
+                    <div>
+                      <span className="text-[9px] text-[#8aa89f] font-bold block">BRANCH</span>
+                      <span className="font-semibold text-[#0d1f1a]">{branches.find((b: any) => b.id === valBranchId)?.name || 'Not set'}</span>
+                    </div>
+                    <button onClick={() => setStep(2)} className="p-1 hover:bg-[#f1f5f4] rounded text-emerald-800 cursor-pointer"><Edit2 className="w-3.5 h-3.5" /></button>
+                  </div>
+
+                  <div className="bg-[#f8fafb] p-2.5 rounded-lg border border-[#e2e8e6] flex justify-between items-center col-span-2">
+                    <div>
+                      <span className="text-[9px] text-[#8aa89f] font-bold block">RECEIVED FROM</span>
+                      <span className="font-semibold text-[#0d1f1a]">{valReceivedFrom || 'Not set'}</span>
+                    </div>
+                    <button onClick={() => setStep(3)} className="p-1 hover:bg-[#f1f5f4] rounded text-emerald-800 cursor-pointer"><Edit2 className="w-3.5 h-3.5" /></button>
+                  </div>
+
+                  <div className="bg-[#f8fafb] p-2.5 rounded-lg border border-[#e2e8e6] flex justify-between items-center col-span-2">
+                    <div>
+                      <span className="text-[9px] text-[#8aa89f] font-bold block">AMOUNT</span>
+                      <span className="font-extrabold text-[#023020] text-sm">{fmt(Number(valAmount))}</span>
+                    </div>
+                    <button onClick={() => setStep(4)} className="p-1 hover:bg-[#f1f5f4] rounded text-emerald-800 cursor-pointer"><Edit2 className="w-3.5 h-3.5" /></button>
+                  </div>
+
+                  <div className="bg-[#f8fafb] p-2.5 rounded-lg border border-[#e2e8e6] flex justify-between items-center col-span-2">
+                    <div>
+                      <span className="text-[9px] text-[#8aa89f] font-bold block">PAYMENT MODE & ACCOUNT</span>
+                      <span className="font-semibold text-[#0d1f1a] capitalize">
+                        {valPaymentMode} Account: {valPaymentMode === 'bank' 
+                          ? bankAccounts.find((b: any) => b.id === valBankAccountId)?.name 
+                          : cashAccounts.find((c: any) => c.id === valCashAccountId)?.name || 'Not set'}
+                      </span>
+                    </div>
+                    <button onClick={() => setStep(5)} className="p-1 hover:bg-[#f1f5f4] rounded text-emerald-800 cursor-pointer"><Edit2 className="w-3.5 h-3.5" /></button>
+                  </div>
+
+                  <div className="bg-[#f8fafb] p-2.5 rounded-lg border border-[#e2e8e6] flex justify-between items-center col-span-2">
+                    <div>
+                      <span className="text-[9px] text-[#8aa89f] font-bold block">REFERENCE #</span>
+                      <span className="font-semibold text-[#0d1f1a]">{valReferenceNumber || '—'}</span>
+                    </div>
+                    <button onClick={() => setStep(7)} className="p-1 hover:bg-[#f1f5f4] rounded text-emerald-800 cursor-pointer"><Edit2 className="w-3.5 h-3.5" /></button>
+                  </div>
+
+                  <div className="bg-[#f8fafb] p-2.5 rounded-lg border border-[#e2e8e6] flex justify-between items-center col-span-2">
+                    <div>
+                      <span className="text-[9px] text-[#8aa89f] font-bold block">NARRATION</span>
+                      <span className="font-semibold text-[#0d1f1a]">{valNarration || '—'}</span>
+                    </div>
+                    <button onClick={() => setStep(8)} className="p-1 hover:bg-[#f1f5f4] rounded text-emerald-800 cursor-pointer"><Edit2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex gap-3 border-t border-[#e2e8e6]">
+                  <button onClick={() => setStep(8)} className="flex-1 btn-ghost py-3 text-xs">Back</button>
+                  <button
+                    onClick={submitTransaction}
+                    disabled={
+                      !valDate || 
+                      !valBranchId || 
+                      !valReceivedFrom || 
+                      Number(valAmount) <= 0 || 
+                      (valPaymentMode === 'bank' && !valBankAccountId) || 
+                      (valPaymentMode === 'cash' && !valCashAccountId) || 
+                      (valPaymentMode === 'bank' && !valReferenceNumber)
+                    }
+                    className="flex-1 btn-primary py-3 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
-          <div>
-            <label className="label">
-              Reference Number {paymentMode === 'bank' ? <span className="text-red-500 font-bold">*</span> : '(Optional)'}
-            </label>
-            <input type="text" placeholder="Transaction ID, Cheque, or Challan Number" className="input" {...register('reference_number')} />
-            {errors.reference_number && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.reference_number.message}</p>}
-          </div>
-
-          <div>
-            <label className="label">Narration</label>
-            <textarea placeholder="Brief particulars or comments about receipt transaction" className="input h-20 resize-none" {...register('narration')}></textarea>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#e2e8e6]">
-            <button type="button" onClick={() => navigate('/dashboard')} className="btn-ghost px-5">
-              Cancel
-            </button>
-            <button type="submit" className="btn-primary px-6">
-              Post Receipt
-            </button>
-          </div>
-        </form>
+          {/* Modal Footer Controls (Popup screens 1-8) */}
+          {step <= 8 && (
+            <div className="px-6 py-4 border-t border-[#e2e8e6] bg-[#f8fafb] flex justify-between gap-4">
+              <button
+                type="button"
+                disabled={step === 1}
+                onClick={() => setStep((s) => Math.max(1, s - 1))}
+                className="btn-ghost flex-1 py-2 text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={handleSkip}
+                className="btn-outline flex-1 py-2 text-xs font-bold border-2 border-[#8aa89f]/30 hover:border-[#4a6b62] cursor-pointer"
+              >
+                Skip
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-
-      <ConfirmDialog
-        isOpen={showConfirm}
-        title="Confirm Receipt Voucher Posting"
-        message={`Are you sure you want to post this receipt of ₹${formData?.amount || 0.0} from ${formData?.received_from || ''}? Once posted, this transaction cannot be deleted. Only reversing entries are permitted.`}
-        onConfirm={handleConfirmPost}
-        onCancel={() => setShowConfirm(false)}
-        isSubmitting={mutation.isPending}
-      />
     </div>
   );
 };
