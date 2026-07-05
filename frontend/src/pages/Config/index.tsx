@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Landmark, GitBranch, Settings2, Building2 } from 'lucide-react';
+import { Landmark, GitBranch, Settings2, Building2, User } from 'lucide-react';
 import { Banks } from './Banks';
 import { Branches } from './Branches';
 import { VoucherPrefixes } from './VoucherPrefixes';
 import { CompanyProfile } from './CompanyProfile';
+import { UserProfile } from './UserProfile';
 
-type ConfigTab = 'banks' | 'branches' | 'prefixes' | 'profile';
+type ConfigTab = 'banks' | 'branches' | 'prefixes' | 'profile' | 'user';
 
 export const ConfigIndex: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ConfigTab>('banks');
@@ -15,6 +16,7 @@ export const ConfigIndex: React.FC = () => {
     { id: 'branches', label: 'Branches (6+)', icon: GitBranch, component: Branches },
     { id: 'prefixes', label: 'Voucher Prefix Configuration', icon: Settings2, component: VoucherPrefixes },
     { id: 'profile', label: 'Company Profile & FY', icon: Building2, component: CompanyProfile },
+    { id: 'user', label: 'User Profile & Password', icon: User, component: UserProfile },
   ] as const;
 
   const ActiveComponent = tabs.find((t) => t.id === activeTab)!.component;
