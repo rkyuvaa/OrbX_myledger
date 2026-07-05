@@ -8,6 +8,11 @@ COPY package*.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 
 COPY . .
+
+# Set Node memory limit and disable source maps to prevent Out-Of-Memory (OOM) on 1GB RAM servers
+ENV NODE_OPTIONS="--max-old-space-size=512"
+ENV GENERATE_SOURCEMAP=false
+
 RUN npm run build
 
 # Production stage
