@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1
 # Build stage
-FROM node:20-alpine AS build
+FROM node:20-slim AS build
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,target=/root/.npm npm install
 
 COPY . .
 
