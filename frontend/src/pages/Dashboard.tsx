@@ -34,7 +34,7 @@ export const Dashboard: React.FC = () => {
     return (
       <div className="card p-6 border-red-200 bg-red-50 text-red-700 text-center">
         <h3 className="font-bold">Error loading dashboard</h3>
-        <p className="text-sm mt-2">Failed to communicate with Orbx My Ledger API service.</p>
+        <p className="text-sm mt-2">Failed to communicate with My Ledger API service.</p>
       </div>
     );
   }

@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="Orbx My Ledger — Cash & Bank Management System API",
+    description="My Ledger — Cash & Bank Management System API",
     version="1.0.0",
     docs_url="/docs",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",

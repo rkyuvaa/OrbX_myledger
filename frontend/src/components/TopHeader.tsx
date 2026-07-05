@@ -1,8 +1,12 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Bell, Search, Calendar } from 'lucide-react';
+import { Bell, Search, Calendar, Menu } from 'lucide-react';
 
-export const TopHeader: React.FC = () => {
+interface TopHeaderProps {
+  onMenuClick: () => void;
+}
+
+export const TopHeader: React.FC<TopHeaderProps> = ({ onMenuClick }) => {
   const location = useLocation();
 
   const getPageTitle = () => {
@@ -17,9 +21,19 @@ export const TopHeader: React.FC = () => {
 
   return (
     <header className="h-16 border-b border-[#e2e8e6] bg-white flex items-center justify-between px-6 z-10 shadow-xs">
-      <div>
-        <h2 className="text-lg font-bold text-[#0d1f1a] tracking-tight">{getPageTitle()}</h2>
-        <p className="text-[10px] text-[#8aa89f] font-medium hidden sm:block">Orbx My Ledger System Dashboard</p>
+      <div className="flex items-center gap-3">
+        {/* Mobile Hamburger menu */}
+        <button 
+          onClick={onMenuClick}
+          className="p-2 -ml-2 text-[#4a6b62] hover:bg-[#f1f5f4] rounded-lg transition-colors cursor-pointer md:hidden"
+          aria-label="Toggle menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <div>
+          <h2 className="text-lg font-bold text-[#0d1f1a] tracking-tight">{getPageTitle()}</h2>
+          <p className="text-[10px] text-[#8aa89f] font-medium hidden sm:block">My Ledger System Dashboard</p>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

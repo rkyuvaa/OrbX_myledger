@@ -4,8 +4,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
 import axios from 'axios';
-import { ShieldAlert, LogIn, Lock, Mail, AlertCircle } from 'lucide-react';
+import { LogIn, Lock, Mail, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { AppLogo } from '../components/AppLogo';
 
 const loginSchema = zod.object({
   email: zod.string().email('Enter a valid email address'),
@@ -61,7 +62,7 @@ export const Login: React.FC = () => {
       } else if (err.response?.data?.detail) {
         setServerError(err.response.data.detail);
       } else {
-        setServerError('Failed to connect to Orbx My Ledger API. Please check backend connection.');
+        setServerError('Failed to connect to My Ledger API. Please check backend connection.');
       }
     } finally {
       setIsSubmitting(false);
@@ -78,9 +79,9 @@ export const Login: React.FC = () => {
         {/* Logo/Brand header */}
         <div className="text-center mb-8">
           <div className="inline-flex p-3 bg-white/10 rounded-xl text-emerald-400 mb-3 border border-white/10 shadow-lg backdrop-blur-md">
-            <ShieldAlert className="w-8 h-8 animate-pulse" />
+            <AppLogo className="w-8 h-8 animate-pulse text-emerald-400" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-white uppercase">Orbx My Ledger</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-white uppercase">My Ledger</h2>
           <p className="text-xs text-emerald-300/70 uppercase tracking-widest mt-1">Cash & Bank Management System</p>
         </div>
 
@@ -103,7 +104,7 @@ export const Login: React.FC = () => {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8aa89f]" />
                 <input
                   type="email"
-                  placeholder="admin@orbxledger.com"
+                  placeholder="admin@myledger.com"
                   className="input pl-9 text-sm"
                   {...register('email')}
                 />
@@ -154,7 +155,7 @@ export const Login: React.FC = () => {
 
         {/* Info footer */}
         <p className="text-center text-[10px] text-emerald-300/40 mt-8">
-          Powered by Orbx Business Solutions. All rights reserved.
+          Powered by My Ledger. All rights reserved.
         </p>
       </div>
     </div>

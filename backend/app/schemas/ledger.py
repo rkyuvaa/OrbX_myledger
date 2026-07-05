@@ -314,6 +314,7 @@ class VoucherSequenceCreate(BaseModel):
 class VoucherSequenceUpdate(BaseModel):
     prefix: Optional[str] = None
     padding: Optional[int] = None
+    next_number: Optional[int] = None
 
 
 class VoucherSequenceOut(BaseModel):

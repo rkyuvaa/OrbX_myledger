@@ -297,3 +297,126 @@
     100% { background-position: -200% 0; }
   }
 }
+
+/* Print Media Styles */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm 1.5cm 1.8cm 1.5cm;
+  }
+
+  /* Hide interactive/non-report elements */
+  aside, 
+  header, 
+  nav, 
+  .no-print, 
+  button, 
+  input, 
+  select, 
+  .label,
+  .flex-wrap,
+  .card-filters,
+  .bg-white\/10 {
+    display: none !important;
+  }
+
+  /* Make sure container spans full width without shadows or custom borders */
+  body {
+    background: white !important;
+    color: black !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-size: 11px !important;
+    line-height: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .table-container {
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  /* Print Table Formats */
+  table.data-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 11px !important;
+    line-height: 18px !important;
+    margin-top: 10px !important;
+  }
+
+  table.data-table thead {
+    display: table-header-group !important; /* Repeats the headers on every page */
+  }
+
+  table.data-table tr {
+    page-break-inside: avoid !important;
+  }
+
+  table.data-table th, 
+  table.data-table td {
+    border: 1px solid #000000 !important;
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+    line-height: 18px !important;
+    color: #000000 !important;
+    background: transparent !important;
+  }
+
+  table.data-table thead th {
+    background: #f1f5f4 !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+  }
+
+  /* Column alignments */
+  table.data-table th.text-right,
+  table.data-table td.text-right {
+    text-align: right !important;
+  }
+
+  /* Side-by-side columns fit in Portrait */
+  .grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 1.5rem !important;
+  }
+
+  /* Except for 3-column layouts like Cash Flow which should stack or fit */
+  .md\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  /* Custom Printed Footer */
+  .print-footer {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #000000 !important;
+    padding-top: 4px !important;
+    font-size: 9px !important;
+    font-weight: 500 !important;
+    color: #333333 !important;
+    background: white !important;
+  }
+
+  .print-footer-page::after {
+    content: counter(page);
+  }
+}
+

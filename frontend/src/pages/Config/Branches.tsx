@@ -146,7 +146,7 @@ export const Branches: React.FC = () => {
               </div>
               <div>
                 <label className="label">Email Address</label>
-                <input type="email" placeholder="e.g. blr.south@orbx.com" className="input" {...register('email')} />
+                <input type="email" placeholder="e.g. blr.south@myledger.com" className="input" {...register('email')} />
               </div>
             </div>
 

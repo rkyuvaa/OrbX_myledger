@@ -2,11 +2,17 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, RefreshCw, BookOpen, BookText, BarChart3, Settings, 
-  LogOut, ShieldAlert
+  LogOut, X
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { AppLogo } from './AppLogo';
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
@@ -26,17 +32,28 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 min-h-screen bg-[#023020] text-white flex flex-col justify-between p-4 shadow-xl z-20 border-r border-[#011a12]">
+    <aside className={`fixed md:static inset-y-0 left-0 w-60 min-h-screen bg-[#023020] text-white flex flex-col justify-between p-4 shadow-xl z-40 border-r border-[#011a12] transition-transform duration-300 ease-in-out ${
+      isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+    }`}>
       <div>
         {/* Brand/Logo logo with dark green gradient accent */}
-        <div className="flex items-center gap-3 px-2 py-4 mb-6 border-b border-white/10">
-          <div className="p-2 bg-white/10 rounded-lg text-emerald-400">
-            <ShieldAlert className="w-6 h-6" />
+        <div className="flex items-center justify-between px-2 py-4 mb-6 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/10 rounded-lg text-emerald-400">
+              <AppLogo className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-md font-bold tracking-wider uppercase">My Ledger</h1>
+              <span className="text-[10px] text-[#8aa89f] tracking-widest font-semibold block">CASH & BANK MGT</span>
+            </div>
           </div>
-          <div>
-            <h1 className="text-md font-bold tracking-wider uppercase">Orbx My Ledger</h1>
-            <span className="text-[10px] text-[#8aa89f] tracking-widest font-semibold block">CASH & BANK MGT</span>
-          </div>
+          <button 
+            onClick={onClose}
+            className="p-1 rounded-lg text-white/70 hover:bg-white/10 md:hidden cursor-pointer"
+            aria-label="Close sidebar"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         {/* Navigation Items */}
@@ -45,6 +62,7 @@ export const Sidebar: React.FC = () => {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={onClose}
               className={({ isActive }) => 
                 `nav-link ${isActive ? 'active bg-white/12 text-white font-semibold' : ''}`
               }
@@ -64,7 +82,7 @@ export const Sidebar: React.FC = () => {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold truncate text-white">{user?.full_name || 'User'}</p>
-            <p className="text-[10px] text-[#8aa89f] truncate">{user?.email || 'user@orbx.com'}</p>
+            <p className="text-[10px] text-[#8aa89f] truncate">{user?.email || 'user@myledger.com'}</p>
           </div>
         </div>
 

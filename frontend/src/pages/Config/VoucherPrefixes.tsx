@@ -20,7 +20,10 @@ export const VoucherPrefixes: React.FC = () => {
     },
   });
 
-  const { register, handleSubmit, setValue } = useForm();
+  const { register, handleSubmit, setValue, watch } = useForm();
+  const watchedPrefix = watch('prefix');
+  const watchedPadding = watch('padding');
+  const watchedNextNumber = watch('next_number');
 
   const editMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
@@ -46,6 +49,7 @@ export const VoucherPrefixes: React.FC = () => {
       data: {
         prefix: values.prefix,
         padding: Number(values.padding),
+        next_number: Number(values.next_number),
       },
     });
   };
@@ -54,6 +58,14 @@ export const VoucherPrefixes: React.FC = () => {
     setEditingSequence(seq);
     setValue('prefix', seq.prefix);
     setValue('padding', seq.padding);
+    setValue('next_number', seq.current_number + 1);
+  };
+
+  const getFriendlyVoucherName = (type: string) => {
+    if (type === 'RCV') return 'Receipt Voucher';
+    if (type === 'PAY') return 'Payment Voucher';
+    if (type === 'TRF') return 'Transfer Voucher';
+    return type;
   };
 
   return (
@@ -81,12 +93,19 @@ export const VoucherPrefixes: React.FC = () => {
 
       {editingSequence && (
         <div className="card bg-white p-6 border border-[#e2e8e6] shadow-sm animate-in fade-in duration-200">
-          <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider mb-4">Edit Prefix: {editingSequence.voucher_type}</h3>
+          <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider mb-4">
+            Edit: {getFriendlyVoucherName(editingSequence.voucher_type)}
+          </h3>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="label">Voucher Type (Read Only)</label>
-                <input type="text" disabled className="input bg-gray-100 cursor-not-allowed font-semibold text-gray-500" value={editingSequence.voucher_type} />
+                <input 
+                  type="text" 
+                  disabled 
+                  className="input bg-gray-100 cursor-not-allowed font-semibold text-gray-500" 
+                  value={getFriendlyVoucherName(editingSequence.voucher_type)} 
+                />
               </div>
               <div>
                 <label className="label">Custom Prefix</label>
@@ -94,7 +113,7 @@ export const VoucherPrefixes: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="label">Padding Length</label>
                 <select className="input select bg-white font-semibold" {...register('padding')}>
@@ -105,8 +124,27 @@ export const VoucherPrefixes: React.FC = () => {
                 </select>
               </div>
               <div>
+                <label className="label">Next Running Number</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  className="input font-semibold" 
+                  required 
+                  {...register('next_number')} 
+                />
+              </div>
+              <div>
                 <label className="label">Next Number Preview</label>
-                <input type="text" disabled className="input bg-gray-100 cursor-not-allowed text-gray-500 font-semibold" value={`${editingSequence.prefix}-${'0'.repeat(editingSequence.padding - 1)}1`} />
+                <input 
+                  type="text" 
+                  disabled 
+                  className="input bg-gray-100 cursor-not-allowed text-gray-500 font-semibold" 
+                  value={
+                    watchedPrefix && watchedPadding && watchedNextNumber 
+                      ? `${watchedPrefix}-${String(watchedNextNumber).padStart(Number(watchedPadding), '0')}`
+                      : ''
+                  } 
+                />
               </div>
             </div>
 
@@ -139,7 +177,7 @@ export const VoucherPrefixes: React.FC = () => {
                   <tr key={seq.id}>
                     <td className="font-bold text-[#0d1f1a] flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-[#023020]" />
-                      <span>{seq.voucher_type}</span>
+                      <span>{getFriendlyVoucherName(seq.voucher_type)}</span>
                     </td>
                     <td className="font-semibold text-emerald-800">{seq.prefix}</td>
                     <td>{seq.current_number}</td>

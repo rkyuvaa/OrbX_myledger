@@ -134,7 +134,7 @@ export const Ledger: React.FC = () => {
         <div className="card bg-white p-6 border border-[#e2e8e6] shadow-sm space-y-6 print:border-none print:shadow-none">
           {/* Print Header */}
           <div className="hidden print:block text-center border-b pb-4 mb-6">
-            <h1 className="text-2xl font-bold uppercase tracking-wider text-[#023020]">Orbx My Ledger</h1>
+            <h1 className="text-2xl font-bold uppercase tracking-wider text-[#023020]">My Ledger</h1>
             <p className="text-xs text-[#8aa89f] tracking-widest mt-1">ACCOUNT STATEMENT</p>
           </div>
 

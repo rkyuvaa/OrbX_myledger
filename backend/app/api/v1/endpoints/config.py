@@ -73,7 +73,10 @@ async def update_voucher_sequence(
         raise HTTPException(status_code=404, detail="Voucher sequence not found")
 
     for field, value in body.model_dump(exclude_none=True).items():
-        setattr(seq, field, value)
+        if field == "next_number":
+            seq.current_number = value - 1
+        else:
+            setattr(seq, field, value)
 
     await db.commit()
     await db.refresh(seq)

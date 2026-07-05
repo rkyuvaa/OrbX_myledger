@@ -8,7 +8,7 @@ from app.db.base_class import Base
 class CompanyProfile(Base):
     __tablename__ = "company_profile"
 
-    name: Mapped[str] = mapped_column(String(255), nullable=False, default="Orbx Corporation")
+    name: Mapped[str] = mapped_column(String(255), nullable=False, default="My Ledger")
     address: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     gstin: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)

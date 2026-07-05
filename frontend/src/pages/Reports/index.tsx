@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { FileSpreadsheet, FileText, ArrowDownRight, ArrowUpRight, BarChart3, Landmark, RefreshCw } from 'lucide-react';
+import { FileSpreadsheet, FileText, ArrowDownRight, ArrowUpRight, BarChart3, Landmark, RefreshCw, Printer } from 'lucide-react';
 import api from '../../lib/api';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 
@@ -21,6 +21,28 @@ export const Reports: React.FC = () => {
     },
   });
   const bankAccounts = accountsList?.bank_accounts || [];
+
+  // Fetch company profile for print footer
+  const { data: company } = useQuery({
+    queryKey: ['companyProfile'],
+    queryFn: async () => {
+      const res = await api.get('/config/company');
+      return res.data;
+    },
+  });
+  const companyName = company?.name || 'My Ledger';
+
+  const [printDateTime, setPrintDateTime] = useState<string>('');
+
+  const handlePrint = () => {
+    setPrintDateTime(new Intl.DateTimeFormat('en-IN', {
+      dateStyle: 'medium',
+      timeStyle: 'medium'
+    }).format(new Date()));
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
 
   // Report Queries
   const { data: cashBookData, isLoading: loadingCash } = useQuery({
@@ -167,11 +189,20 @@ export const Reports: React.FC = () => {
                 <h3 className="text-md font-bold text-[#023020] uppercase tracking-wider">Cash Book Statement</h3>
                 <p className="text-xs text-[#8aa89f]">Period: {fromDate || 'All'} to {toDate || 'Present'}</p>
               </div>
-              <div className="text-right">
-                <span className="text-[10px] font-bold text-[#8aa89f] block uppercase">Net Flow Balance</span>
-                <span className={`text-md font-extrabold ${cashBookData.net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {fmt(cashBookData.net)}
-                </span>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handlePrint}
+                  className="btn-outline text-xs cursor-pointer flex items-center gap-1.5 px-3 py-1.5 no-print"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Print Report</span>
+                </button>
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-[#8aa89f] block uppercase">Net Flow Balance</span>
+                  <span className={`text-md font-extrabold ${cashBookData.net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {fmt(cashBookData.net)}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -259,9 +290,18 @@ export const Reports: React.FC = () => {
                 <h3 className="text-md font-bold text-[#023020] uppercase tracking-wider">Bank Book: {bankBookData.bank_name}</h3>
                 <p className="text-xs text-[#8aa89f]">Statement Period: {fromDate || 'All'} to {toDate || 'Present'}</p>
               </div>
-              <div className="text-right">
-                <span className="text-[10px] font-bold text-[#8aa89f] block uppercase">Current Bank Balance</span>
-                <span className="text-md font-extrabold text-[#023020]">{fmt(bankBookData.current_balance)}</span>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handlePrint}
+                  className="btn-outline text-xs cursor-pointer flex items-center gap-1.5 px-3 py-1.5 no-print"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Print Report</span>
+                </button>
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-[#8aa89f] block uppercase">Current Bank Balance</span>
+                  <span className="text-md font-extrabold text-[#023020]">{fmt(bankBookData.current_balance)}</span>
+                </div>
               </div>
             </div>
 
@@ -339,8 +379,20 @@ export const Reports: React.FC = () => {
       {/* 3. Branch Collection */}
       {activeTab === 'branch-collect' && (
         loadingBranchCollect ? <LoadingSkeleton rows={6} cols={4} /> : branchCollectData ? (
-          <div className="card bg-white p-5 border border-[#e2e8e6] shadow-sm">
-            <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider mb-4">Branch-wise Collections Today</h3>
+          <div className="card bg-white p-5 border border-[#e2e8e6] shadow-sm space-y-4">
+            <div className="flex justify-between items-center border-b pb-3 mb-1">
+              <div>
+                <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider">Branch-wise Collections Today</h3>
+                <p className="text-xs text-[#8aa89f]">Period: {fromDate || 'All'} to {toDate || 'Present'}</p>
+              </div>
+              <button
+                onClick={handlePrint}
+                className="btn-outline text-xs cursor-pointer flex items-center gap-1.5 px-3 py-1.5 no-print"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print Report</span>
+              </button>
+            </div>
             <div className="table-container">
               <table className="data-table">
                 <thead>
@@ -376,8 +428,20 @@ export const Reports: React.FC = () => {
       {/* 4. Branch Payment */}
       {activeTab === 'branch-pay' && (
         loadingBranchPay ? <LoadingSkeleton rows={6} cols={4} /> : branchPayData ? (
-          <div className="card bg-white p-5 border border-[#e2e8e6] shadow-sm">
-            <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider mb-4">Branch-wise Payments Today</h3>
+          <div className="card bg-white p-5 border border-[#e2e8e6] shadow-sm space-y-4">
+            <div className="flex justify-between items-center border-b pb-3 mb-1">
+              <div>
+                <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider">Branch-wise Payments Today</h3>
+                <p className="text-xs text-[#8aa89f]">Period: {fromDate || 'All'} to {toDate || 'Present'}</p>
+              </div>
+              <button
+                onClick={handlePrint}
+                className="btn-outline text-xs cursor-pointer flex items-center gap-1.5 px-3 py-1.5 no-print"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print Report</span>
+              </button>
+            </div>
             <div className="table-container">
               <table className="data-table">
                 <thead>
@@ -414,7 +478,19 @@ export const Reports: React.FC = () => {
       {activeTab === 'cash-flow' && (
         loadingCashFlow ? <LoadingSkeleton rows={3} cols={3} /> : cashFlowData ? (
           <div className="card bg-white p-6 border border-[#e2e8e6] shadow-sm space-y-6">
-            <h3 className="text-sm font-bold text-[#023020] uppercase tracking-wider border-b pb-3">Company Cash Flow Statement</h3>
+            <div className="flex justify-between items-center border-b pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-[#023020] uppercase tracking-wider">Company Cash Flow Statement</h3>
+                <p className="text-xs text-[#8aa89f]">Period: {fromDate || 'All'} to {toDate || 'Present'}</p>
+              </div>
+              <button
+                onClick={handlePrint}
+                className="btn-outline text-xs cursor-pointer flex items-center gap-1.5 px-3 py-1.5 no-print"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print Report</span>
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="p-4 bg-green-50 rounded-xl border border-green-100 flex flex-col justify-between min-h-[100px]">
                 <span className="text-[10px] uppercase font-bold text-green-700 tracking-wider">Total Cash & Bank Inflow</span>
@@ -434,6 +510,12 @@ export const Reports: React.FC = () => {
           </div>
         ) : null
       )}
+      {/* Print Footer */}
+      <div className="print-footer hidden">
+        <span>{companyName}</span>
+        <span>Printed on: {printDateTime}</span>
+        <span>Page <span className="print-footer-page"></span></span>
+      </div>
     </div>
   );
 };

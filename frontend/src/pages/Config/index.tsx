@@ -13,7 +13,7 @@ export const ConfigIndex: React.FC = () => {
   const tabs = [
     { id: 'banks', label: 'Bank Accounts', icon: Landmark, component: Banks },
     { id: 'branches', label: 'Branches (6+)', icon: GitBranch, component: Branches },
-    { id: 'prefixes', label: 'Voucher Numbering', icon: Settings2, component: VoucherPrefixes },
+    { id: 'prefixes', label: 'Voucher Prefix Configuration', icon: Settings2, component: VoucherPrefixes },
     { id: 'profile', label: 'Company Profile & FY', icon: Building2, component: CompanyProfile },
   ] as const;
 
