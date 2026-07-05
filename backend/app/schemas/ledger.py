@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import List, Optional
+from typing import List, Optional, Any
 from pydantic import BaseModel, field_validator
 
 
@@ -137,6 +137,13 @@ class ReceiptCreate(BaseModel):
             raise ValueError("Amount must be greater than zero")
         return v
 
+    @field_validator("branch_id", "bank_account_id", "cash_account_id", "reference_number", "narration", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, v: Any) -> Any:
+        if v == "":
+            return None
+        return v
+
 
 class ReceiptOut(BaseModel):
     id: str
@@ -182,6 +189,13 @@ class PaymentCreate(BaseModel):
     def amount_positive(cls, v: float) -> float:
         if v <= 0:
             raise ValueError("Amount must be greater than zero")
+        return v
+
+    @field_validator("branch_id", "bank_account_id", "cash_account_id", "reference_number", "narration", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, v: Any) -> Any:
+        if v == "":
+            return None
         return v
 
 
