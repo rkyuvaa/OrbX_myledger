@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, CheckCircle2, Landmark, Wallet, Edit2, ArrowLeft, MinusCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Landmark, Wallet, Edit2, ArrowLeft, MinusCircle, X } from 'lucide-react';
 import api from '../lib/api';
 
 export const Pay: React.FC = () => {
@@ -50,7 +50,7 @@ export const Pay: React.FC = () => {
   const bankAccounts = accountsData?.bank_accounts || [];
   const cashAccounts = accountsData?.cash_accounts || [];
 
-  // LocalStorage Helpers for Autocomplete Paid To / References
+  // LocalStorage Helpers for Autocomplete Senders/References
   const getHistory = (key: string): string[] => {
     try {
       const raw = localStorage.getItem(key);
@@ -76,34 +76,23 @@ export const Pay: React.FC = () => {
 
   const handlePartyChange = (text: string) => {
     setValPaidTo(text);
-    if (text.trim().length >= 2) {
-      const hist = getHistory('myledger_pay_parties');
-      const filtered = hist.filter(name => name.toLowerCase().includes(text.toLowerCase()));
-      setSuggestions(filtered);
-    } else {
-      setSuggestions([]);
-    }
+    const hist = getHistory('myledger_pay_parties');
+    const filtered = hist.filter(name => name.toLowerCase().includes(text.toLowerCase()) && name.toLowerCase() !== text.toLowerCase());
+    setSuggestions(filtered);
   };
 
   const handleReferenceChange = (text: string) => {
     setValReferenceNumber(text);
-    if (text.trim().length >= 2) {
-      const hist = getHistory('myledger_pay_references');
-      const filtered = hist.filter(ref => ref.toLowerCase().includes(text.toLowerCase()));
-      setRefSuggestions(filtered);
-    } else {
-      setRefSuggestions([]);
-    }
+    const hist = getHistory('myledger_pay_references');
+    const filtered = hist.filter(ref => ref.toLowerCase().includes(text.toLowerCase()) && ref.toLowerCase() !== text.toLowerCase());
+    setRefSuggestions(filtered);
   };
 
   const handleSkip = () => {
-    if (step === 5) {
-      setValPaymentMode('bank');
-      setStep(6);
+    if (step === 7) {
+      setStep(8);
     } else if (step === 8) {
       setStep(9);
-    } else {
-      setStep((s) => s + 1);
     }
   };
 
@@ -135,12 +124,6 @@ export const Pay: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
       setSuccessMessage(`Payment entry posted successfully! Voucher Number: ${data.voucher_number}`);
       
-      // Save input party & reference to suggestions history
-      saveToHistory('myledger_pay_parties', valPaidTo);
-      if (valReferenceNumber) {
-        saveToHistory('myledger_pay_references', valReferenceNumber);
-      }
-
       // Reset Form and Step
       setValDate(new Date().toISOString().substring(0, 10));
       setValBranchId('');
@@ -184,9 +167,11 @@ export const Pay: React.FC = () => {
   const fmt = (val: number) => 
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
+  const isOptionalStep = step === 7 || step === 8;
+
   return (
     <div className="max-w-2xl mx-auto space-y-6 relative min-h-[520px]">
-      {/* ─── HEADER (Always visible) ─── */}
+      {/* ─── HEADER (Always visible in page background) ─── */}
       <div className="bg-[#023020] text-white p-5 rounded-2xl shadow-md border border-[#011a12]">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -221,7 +206,7 @@ export const Pay: React.FC = () => {
         </div>
       )}
 
-      {/* Backdrop representing the blurred rest of the screen */}
+      {/* Page Background dim mockup */}
       <div className="bg-white/40 border border-dashed border-[#e2e8e6] rounded-2xl p-12 text-center min-h-[300px] flex flex-col justify-center items-center gap-3">
         <MinusCircle className="w-10 h-10 text-[#8aa89f]/40" />
         <p className="text-sm text-[#8aa89f]">Guided sequential popup flow active in the center overlay.</p>
@@ -243,17 +228,29 @@ export const Pay: React.FC = () => {
             </div>
           )}
 
-          {/* Step Progress Top Bar */}
-          <div className="px-6 pt-5 flex justify-between items-center text-[10px] font-bold text-[#8aa89f] uppercase tracking-wider">
-            <span>Step {step} of 8</span>
-            <span className="text-emerald-700 font-extrabold">{Math.round((step / 8) * 100)}% Complete</span>
-          </div>
-          <div className="w-full bg-[#f1f5f4] h-1.5 mt-3">
-            <div className="bg-emerald-600 h-1.5 transition-all duration-300" style={{ width: `${(step / 8) * 100}%` }}></div>
+          {/* Popup Header */}
+          <div className="px-6 py-4 border-b border-[#e2e8e6] bg-[#f8fafb] flex justify-between items-start relative select-none">
+            <div>
+              <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider">
+                Send Voucher
+              </h3>
+              <div className="flex gap-4 mt-1 text-[10px] font-bold text-[#8aa89f]">
+                <span>Date: {valDate ? new Date(valDate).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : 'Today'}</span>
+                <span>Voucher: AUTO</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="p-1.5 -mr-1 rounded-lg text-[#4a6b62] hover:bg-[#e2e8e6] hover:text-[#0d1f1a] transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Step Content */}
-          <div className="p-6 flex-1 min-h-[200px] flex flex-col justify-center">
+          <div className="p-6 flex-1 min-h-[220px] flex flex-col justify-center">
             {step === 1 && (
               <div className="space-y-4">
                 <h3 className="text-base font-bold text-[#0d1f1a]">Choose Transaction Date</h3>
@@ -266,6 +263,13 @@ export const Pay: React.FC = () => {
                   }}
                   className="input text-base font-semibold py-2.5"
                 />
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="w-full btn-primary py-2.5 font-bold text-sm cursor-pointer shadow-sm"
+                >
+                  Set Date
+                </button>
               </div>
             )}
 
@@ -280,7 +284,7 @@ export const Pay: React.FC = () => {
                         setValBranchId(branch.id);
                         setStep(3);
                       }}
-                      className={`w-full py-2.5 px-4 rounded-xl border text-left font-semibold text-sm transition-all cursor-pointer ${
+                      className={`w-full py-2.5 px-4 rounded-xl border text-left font-semibold text-xs transition-all cursor-pointer ${
                         valBranchId === branch.id 
                           ? 'bg-[#023020] text-white border-[#023020]' 
                           : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#0d1f1a] border-[#e2e8e6]'
@@ -295,22 +299,28 @@ export const Pay: React.FC = () => {
 
             {step === 3 && (
               <div className="space-y-4 relative">
-                <h3 className="text-base font-bold text-[#0d1f1a]">Paid To (Recipient Name)</h3>
+                <h3 className="text-base font-bold text-[#0d1f1a]">Paid To</h3>
                 <input
                   type="text"
-                  placeholder="e.g. Vendor Name or Branch Account Manager"
+                  placeholder="Type recipient's name..."
                   value={valPaidTo}
                   onChange={(e) => handlePartyChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && valPaidTo.trim()) {
-                      setStep(4);
-                    }
-                  }}
                   autoFocus
                   className="input text-base font-semibold py-2.5"
                 />
-                {suggestions.length > 0 && (
-                  <div className="absolute left-0 right-0 z-55 bg-white border border-[#e2e8e6] rounded-xl shadow-lg mt-1 max-h-[120px] overflow-y-auto">
+                {valPaidTo.trim().length > 0 && (
+                  <div className="absolute left-0 right-0 z-55 bg-white border border-[#e2e8e6] rounded-xl shadow-lg mt-1 max-h-[145px] overflow-y-auto">
+                    <button
+                      onClick={() => {
+                        saveToHistory('myledger_pay_parties', valPaidTo);
+                        setSuggestions([]);
+                        setStep(4);
+                      }}
+                      className="w-full text-left py-2.5 px-4 bg-emerald-50/50 hover:bg-[#f1f5f4] text-xs font-bold text-[#023020] border-b border-[#e2e8e6] flex justify-between items-center cursor-pointer"
+                    >
+                      <span>Use: "{valPaidTo}"</span>
+                      <span className="text-[9px] text-emerald-700 bg-white px-1.5 py-0.5 rounded border border-emerald-100 font-semibold uppercase">New Name</span>
+                    </button>
                     {suggestions.map((name) => (
                       <button
                         key={name}
@@ -326,7 +336,7 @@ export const Pay: React.FC = () => {
                     ))}
                   </div>
                 )}
-                <p className="text-[10px] text-[#8aa89f]">Press Enter or tap suggestion to confirm</p>
+                <p className="text-[10px] text-[#8aa89f]">Suggestions list selection triggers the next popup.</p>
               </div>
             )}
 
@@ -341,11 +351,6 @@ export const Pay: React.FC = () => {
                     placeholder="0.00"
                     value={valAmount}
                     onChange={(e) => setValAmount(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && Number(valAmount) > 0) {
-                        setStep(5);
-                      }
-                    }}
                     autoFocus
                     className="input pl-9 text-2xl font-extrabold py-2 text-emerald-950"
                   />
@@ -371,7 +376,7 @@ export const Pay: React.FC = () => {
                     }}
                     className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                       valPaymentMode === 'bank'
-                        ? 'bg-emerald-50 border-emerald-400 text-emerald-900 shadow-sm'
+                        ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
                         : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
                     }`}
                   >
@@ -385,7 +390,7 @@ export const Pay: React.FC = () => {
                     }}
                     className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                       valPaymentMode === 'cash'
-                        ? 'bg-emerald-50 border-emerald-400 text-emerald-900 shadow-sm'
+                        ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
                         : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
                     }`}
                   >
@@ -410,7 +415,7 @@ export const Pay: React.FC = () => {
                           setValBankAccountId(bank.id);
                           setStep(7);
                         }}
-                        className={`w-full py-2.5 px-4 rounded-xl border text-left font-semibold text-sm transition-all cursor-pointer ${
+                        className={`w-full py-2.5 px-4 rounded-xl border text-left font-semibold text-xs transition-all cursor-pointer ${
                           valBankAccountId === bank.id 
                             ? 'bg-[#023020] text-white border-[#023020]' 
                             : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#0d1f1a] border-[#e2e8e6]'
@@ -430,7 +435,7 @@ export const Pay: React.FC = () => {
                           setValCashAccountId(cash.id);
                           setStep(7);
                         }}
-                        className={`w-full py-2.5 px-4 rounded-xl border text-left font-semibold text-sm transition-all cursor-pointer ${
+                        className={`w-full py-2.5 px-4 rounded-xl border text-left font-semibold text-xs transition-all cursor-pointer ${
                           valCashAccountId === cash.id 
                             ? 'bg-[#023020] text-white border-[#023020]' 
                             : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#0d1f1a] border-[#e2e8e6]'
@@ -450,23 +455,29 @@ export const Pay: React.FC = () => {
             {step === 7 && (
               <div className="space-y-4 relative">
                 <h3 className="text-base font-bold text-[#0d1f1a]">
-                  Reference Number {valPaymentMode === 'bank' ? <span className="text-red-500 font-bold">*</span> : '(Optional)'}
+                  Reference Number <span className="text-[10px] font-semibold text-[#8aa89f]">(Optional)</span>
                 </h3>
                 <input
                   type="text"
-                  placeholder="Transaction ID, Cheque, or Transfer reference ID"
+                  placeholder="Transaction ID, Cheque, or Transfer reference ID..."
                   value={valReferenceNumber}
                   onChange={(e) => handleReferenceChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      setStep(8);
-                    }
-                  }}
                   autoFocus
                   className="input text-base font-semibold py-2.5"
                 />
-                {refSuggestions.length > 0 && (
-                  <div className="absolute left-0 right-0 z-55 bg-white border border-[#e2e8e6] rounded-xl shadow-lg mt-1 max-h-[120px] overflow-y-auto">
+                {valReferenceNumber.trim().length > 0 && (
+                  <div className="absolute left-0 right-0 z-55 bg-white border border-[#e2e8e6] rounded-xl shadow-lg mt-1 max-h-[145px] overflow-y-auto">
+                    <button
+                      onClick={() => {
+                        saveToHistory('myledger_pay_references', valReferenceNumber);
+                        setRefSuggestions([]);
+                        setStep(8);
+                      }}
+                      className="w-full text-left py-2.5 px-4 bg-emerald-50/50 hover:bg-[#f1f5f4] text-xs font-bold text-[#023020] border-b border-[#e2e8e6] flex justify-between items-center cursor-pointer"
+                    >
+                      <span>Use: "{valReferenceNumber}"</span>
+                      <span className="text-[9px] text-emerald-700 bg-white px-1.5 py-0.5 rounded border border-emerald-100 font-semibold uppercase">Confirm</span>
+                    </button>
                     {refSuggestions.map((ref) => (
                       <button
                         key={ref}
@@ -482,20 +493,15 @@ export const Pay: React.FC = () => {
                     ))}
                   </div>
                 )}
-                <div className="flex justify-between items-center">
-                  <p className="text-[10px] text-[#8aa89f]">Press Enter or tap suggestion to confirm</p>
-                  {valPaymentMode !== 'bank' && (
-                    <button onClick={() => setStep(8)} className="text-xs text-emerald-700 font-bold hover:underline cursor-pointer">Skip Reference</button>
-                  )}
-                </div>
+                <p className="text-[10px] text-[#8aa89f]">Selecting a suggestion auto-advances. Otherwise tap Skip.</p>
               </div>
             )}
 
             {step === 8 && (
               <div className="space-y-4">
-                <h3 className="text-base font-bold text-[#0d1f1a]">Narration / Details</h3>
+                <h3 className="text-base font-bold text-[#0d1f1a]">Narration / Details <span className="text-[10px] font-semibold text-[#8aa89f]">(Optional)</span></h3>
                 <textarea
-                  placeholder="Write descriptive details about this outflow payment"
+                  placeholder="Write descriptive details about this outflow payment..."
                   value={valNarration}
                   onChange={(e) => setValNarration(e.target.value)}
                   className="input h-20 resize-none font-medium text-sm"
@@ -504,14 +510,14 @@ export const Pay: React.FC = () => {
                   onClick={() => setStep(9)}
                   className="w-full py-3 bg-emerald-800 text-white rounded-xl font-bold text-sm hover:bg-emerald-950 cursor-pointer shadow-md"
                 >
-                  Review Summary & Submit
+                  Review Summary
                 </button>
               </div>
             )}
 
             {step === 9 && (
               <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
-                <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider border-b pb-2 mb-2">Review & Confirm</h3>
+                <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider border-b pb-2 mb-2">Review Summary</h3>
                 
                 {/* Validation Warnings */}
                 {(!valDate || !valBranchId || !valPaidTo || Number(valAmount) <= 0 || (valPaymentMode === 'bank' && !valBankAccountId) || (valPaymentMode === 'cash' && !valCashAccountId) || (valPaymentMode === 'bank' && !valReferenceNumber)) && (
@@ -628,13 +634,15 @@ export const Pay: React.FC = () => {
               >
                 Back
               </button>
-              <button
-                type="button"
-                onClick={handleSkip}
-                className="btn-outline flex-1 py-2 text-xs font-bold border-2 border-[#8aa89f]/30 hover:border-[#4a6b62] cursor-pointer"
-              >
-                Skip
-              </button>
+              {isOptionalStep && (
+                <button
+                  type="button"
+                  onClick={handleSkip}
+                  className="btn-outline flex-1 py-2 text-xs font-bold border-2 border-[#8aa89f]/30 hover:border-[#4a6b62] cursor-pointer"
+                >
+                  Skip
+                </button>
+              )}
             </div>
           )}
         </div>
