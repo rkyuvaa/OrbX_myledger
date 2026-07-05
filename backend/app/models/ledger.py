@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 from sqlalchemy import String, Float, Boolean, Date, DateTime, Text, func, ForeignKey, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
@@ -61,25 +62,25 @@ class ReceiptVoucher(Base):
     voucher_number: Mapped[str] = mapped_column(String(30), unique=True, index=True, nullable=False)
     date: Mapped[date] = mapped_column(Date, nullable=False)
     branch_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("branches.id", ondelete="RESTRICT"), nullable=True, index=True
+        UUID(as_uuid=False), ForeignKey("branches.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     received_from: Mapped[str] = mapped_column(String(255), nullable=False)
     amount: Mapped[float] = mapped_column(Float, nullable=False)
     payment_mode: Mapped[str] = mapped_column(String(20), nullable=False)  # bank, cash
     bank_account_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("bank_accounts.id", ondelete="RESTRICT"), nullable=True, index=True
+        UUID(as_uuid=False), ForeignKey("bank_accounts.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     cash_account_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("cash_accounts.id", ondelete="RESTRICT"), nullable=True, index=True
+        UUID(as_uuid=False), ForeignKey("cash_accounts.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     reference_number: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     narration: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_reversed: Mapped[bool] = mapped_column(Boolean, default=False)
     reversal_of_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("receipt_vouchers.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=False), ForeignKey("receipt_vouchers.id", ondelete="SET NULL"), nullable=True
     )
     posted_by_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
 
     # Relationships
@@ -99,25 +100,25 @@ class PaymentVoucher(Base):
     voucher_number: Mapped[str] = mapped_column(String(30), unique=True, index=True, nullable=False)
     date: Mapped[date] = mapped_column(Date, nullable=False)
     branch_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("branches.id", ondelete="RESTRICT"), nullable=True, index=True
+        UUID(as_uuid=False), ForeignKey("branches.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     paid_to: Mapped[str] = mapped_column(String(255), nullable=False)
     amount: Mapped[float] = mapped_column(Float, nullable=False)
     payment_mode: Mapped[str] = mapped_column(String(20), nullable=False)  # bank, cash
     bank_account_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("bank_accounts.id", ondelete="RESTRICT"), nullable=True, index=True
+        UUID(as_uuid=False), ForeignKey("bank_accounts.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     cash_account_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("cash_accounts.id", ondelete="RESTRICT"), nullable=True, index=True
+        UUID(as_uuid=False), ForeignKey("cash_accounts.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     reference_number: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     narration: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_reversed: Mapped[bool] = mapped_column(Boolean, default=False)
     reversal_of_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("payment_vouchers.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=False), ForeignKey("payment_vouchers.id", ondelete="SET NULL"), nullable=True
     )
     posted_by_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
 
     # Relationships
@@ -137,14 +138,14 @@ class FundTransfer(Base):
     voucher_number: Mapped[str] = mapped_column(String(30), unique=True, index=True, nullable=False)
     date: Mapped[date] = mapped_column(Date, nullable=False)
     from_account_type: Mapped[str] = mapped_column(String(10), nullable=False)  # bank, cash
-    from_account_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    from_account_id: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False)
     to_account_type: Mapped[str] = mapped_column(String(10), nullable=False)    # bank, cash
-    to_account_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    to_account_id: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False)
     amount: Mapped[float] = mapped_column(Float, nullable=False)
     reference_number: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     narration: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     posted_by_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
 
 
@@ -157,10 +158,10 @@ class DaybookEntry(Base):
 
     date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     voucher_type: Mapped[str] = mapped_column(String(10), nullable=False)  # RCV, PAY, TRF
-    voucher_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    voucher_id: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, index=True)
     voucher_number: Mapped[str] = mapped_column(String(30), nullable=False)
     branch_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("branches.id", ondelete="SET NULL"), nullable=True, index=True
+        UUID(as_uuid=False), ForeignKey("branches.id", ondelete="SET NULL"), nullable=True, index=True
     )
     particulars: Mapped[str] = mapped_column(String(500), nullable=False)
     debit: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
@@ -169,7 +170,7 @@ class DaybookEntry(Base):
     reference_number: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     narration: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     account_type: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)   # bank, cash
-    account_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    account_id: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), nullable=True)
 
     # Relationship
     branch: Mapped[Optional["Branch"]] = relationship("Branch", foreign_keys=[branch_id])
@@ -184,9 +185,9 @@ class LedgerEntry(Base):
 
     date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     account_type: Mapped[str] = mapped_column(String(10), nullable=False)  # bank, cash, branch
-    account_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    account_id: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, index=True)
     voucher_type: Mapped[str] = mapped_column(String(10), nullable=False)  # RCV, PAY, TRF
-    voucher_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    voucher_id: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False)
     voucher_number: Mapped[str] = mapped_column(String(30), nullable=False)
     debit: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     credit: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
@@ -202,11 +203,11 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     user_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     action: Mapped[str] = mapped_column(String(50), nullable=False)   # CREATE, UPDATE, REVERSE
     entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    entity_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    entity_id: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     old_values: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     new_values: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
