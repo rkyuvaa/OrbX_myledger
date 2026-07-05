@@ -62,9 +62,9 @@ export const Dashboard: React.FC = () => {
           </button>
           <button 
             onClick={() => navigate('/pay')}
-            className="flex-1 btn-outline text-base font-bold flex items-center justify-center gap-3 cursor-pointer shadow-sm rounded-2xl py-3 border-2 border-red-800 text-red-800 hover:bg-red-50/50"
+            className="flex-1 text-base font-bold flex items-center justify-center gap-3 cursor-pointer shadow-md rounded-2xl py-3 bg-red-800 text-white hover:bg-red-950 transition-colors"
           >
-            <ArrowUpRight className="w-5 h-5 text-red-800" />
+            <ArrowUpRight className="w-5 h-5 text-white" />
             <span>Send Money</span>
           </button>
         </div>
@@ -76,7 +76,7 @@ export const Dashboard: React.FC = () => {
           title="Today's Receipts" 
           value={fmt(kpis.today_receipts)} 
           icon={ArrowDownRight} 
-          description="Total branch & direct collections" 
+          description="Totally received" 
           valueClass="text-emerald-700 font-extrabold"
           iconBgClass="bg-emerald-50"
           iconClass="text-emerald-800 font-bold"
@@ -85,7 +85,7 @@ export const Dashboard: React.FC = () => {
           title="Today's Payments" 
           value={fmt(kpis.today_payments)} 
           icon={ArrowUpRight} 
-          description="Total branch & corporate payments" 
+          description="Totally Sent" 
           valueClass="text-red-600 font-extrabold"
           iconBgClass="bg-red-50"
           iconClass="text-red-600 font-bold"
@@ -94,13 +94,12 @@ export const Dashboard: React.FC = () => {
           title="Cash Balance" 
           value={fmt(kpis.total_cash_balance)} 
           icon={Wallet} 
-          description="Available cash in vault" 
+          description="Cash in Hand" 
         />
         <StatCard 
           title="Branch Collection Today" 
           value={fmt(kpis.branch_collection_today)} 
           icon={Landmark} 
-          description="Collections received from 6+ branches" 
         />
       </div>
 
