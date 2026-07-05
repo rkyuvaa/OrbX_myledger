@@ -1,8 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
-  LayoutDashboard, ArrowDownCircle, ArrowUpCircle, 
-  RefreshCw, BookOpen, BookText, BarChart3, Settings, 
+  LayoutDashboard, RefreshCw, BookOpen, BookText, BarChart3, Settings, 
   LogOut, ShieldAlert
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -19,8 +18,6 @@ export const Sidebar: React.FC = () => {
 
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/receive', label: 'Receive Money', icon: ArrowDownCircle },
-    { to: '/pay', label: 'Send Money', icon: ArrowUpCircle },
     { to: '/transfer', label: 'Internal Transfer', icon: RefreshCw },
     { to: '/daybook', label: 'Daybook', icon: BookOpen },
     { to: '/ledger', label: 'Ledger', icon: BookText },
