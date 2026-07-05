@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../lib/api';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { useToastStore } from '../store/toastStore';
 
 const transferSchema = zod.object({
   date: zod.string().min(1, 'Date is required'),
@@ -32,10 +33,10 @@ type TransferFormValues = zod.infer<typeof transferSchema>;
 export const Transfer: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const addToast = useToastStore((state) => state.addToast);
   const [showConfirm, setShowConfirm] = useState(false);
   const [formData, setFormData] = useState<TransferFormValues | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Fetch Accounts
   const { data: accountsData } = useQuery({
@@ -91,9 +92,10 @@ export const Transfer: React.FC = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
-      setSuccessMessage(`Internal fund transfer posted! Voucher Number: ${data.voucher_number}`);
+      addToast(`Internal fund transfer posted! Voucher Number: ${data.voucher_number}`, 'success');
       reset();
       setShowConfirm(false);
+      navigate('/dashboard');
     },
     onError: (err: any) => {
       setErrorMessage(err.response?.data?.detail || 'An error occurred during transfer posting.');
@@ -103,7 +105,6 @@ export const Transfer: React.FC = () => {
 
   const handleFormSubmit = (values: TransferFormValues) => {
     setErrorMessage(null);
-    setSuccessMessage(null);
     if (validateTransferBalance(values)) {
       setFormData(values);
       setShowConfirm(true);
@@ -117,121 +118,117 @@ export const Transfer: React.FC = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="page-header">
+    <div className="max-w-2xl mx-auto space-y-3">
+      <div className="page-header pb-1">
         <div>
-          <h2 className="page-title">Internal Fund Transfer</h2>
-          <p className="page-subtitle">Move money between bank accounts and cash vaults</p>
+          <h2 className="page-title text-lg font-bold">Internal Fund Transfer</h2>
+          <p className="page-subtitle text-xs">Move money between bank accounts and cash vaults</p>
         </div>
       </div>
 
-      {successMessage && (
-        <div className="p-4 bg-green-50 text-green-700 rounded-xl flex items-start gap-2 text-sm border border-green-100 animate-in fade-in duration-200">
-          <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600" />
-          <span>{successMessage}</span>
-        </div>
-      )}
-
       {errorMessage && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-sm border border-red-100 animate-in fade-in duration-200">
-          <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
+        <div className="p-3 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-xs border border-red-100 animate-in fade-in duration-200">
+          <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
           <span>{errorMessage}</span>
         </div>
       )}
 
-      <div className="card bg-white p-6 shadow-sm">
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-          <div>
-            <label className="label">Transfer Date</label>
-            <input type="date" className="input" {...register('date')} />
-            {errors.date && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.date.message}</p>}
+      <div className="card bg-white p-4 sm:p-5 shadow-sm rounded-2xl border border-[#e2e8e6]">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+          
+          {/* Row 1: Date | Amount | Reference (3 columns) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="label text-[11px] font-bold">Transfer Date</label>
+              <input type="date" className="input py-2 text-xs" {...register('date')} />
+              {errors.date && <p className="text-red-500 text-[10px] mt-0.5 font-semibold">{errors.date.message}</p>}
+            </div>
+
+            <div>
+              <label className="label text-[11px] font-bold">Amount (₹)</label>
+              <input type="number" step="0.01" placeholder="0.00" className="input py-2 text-xs font-semibold" {...register('amount')} />
+              {errors.amount && <p className="text-red-500 text-[10px] mt-0.5 font-semibold">{errors.amount.message}</p>}
+            </div>
+
+            <div>
+              <label className="label text-[11px] font-bold">Reference Number <span className="text-[9px] text-[#8aa89f] font-normal">(Optional)</span></label>
+              <input type="text" placeholder="slip or memo number" className="input py-2 text-xs" {...register('reference_number')} />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Row 2: Source | Destination Cards (2 columns) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* SOURCE ACCOUNT */}
-            <div className="p-4 bg-[#f8fafb] rounded-xl border border-[#e2e8e6] space-y-3">
-              <span className="text-xs uppercase font-bold tracking-wider text-[#4a6b62]">Source (From)</span>
-              <div>
-                <label className="label">Account Type</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 text-sm text-[#4a6b62]">
-                    <input type="radio" value="bank" {...register('from_account_type')} className="accent-[#023020]" />
+            <div className="p-3 bg-[#f8fafb] rounded-xl border border-[#e2e8e6] space-y-2">
+              <div className="flex justify-between items-center border-b border-[#e2e8e6] pb-1">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-[#4a6b62]">Source (From)</span>
+                <div className="flex gap-3">
+                  <label className="flex items-center gap-1.5 text-xs text-[#4a6b62] cursor-pointer">
+                    <input type="radio" value="bank" {...register('from_account_type')} className="accent-[#023020] w-3 h-3" />
                     <span>Bank</span>
                   </label>
-                  <label className="flex items-center gap-2 text-sm text-[#4a6b62]">
-                    <input type="radio" value="cash" {...register('from_account_type')} className="accent-[#023020]" />
+                  <label className="flex items-center gap-1.5 text-xs text-[#4a6b62] cursor-pointer">
+                    <input type="radio" value="cash" {...register('from_account_type')} className="accent-[#023020] w-3 h-3" />
                     <span>Cash</span>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="label">Select Source Account</label>
-                <select className="input select bg-white" {...register('from_account_id')}>
+                <label className="label text-[10px] font-bold">Select Source Account</label>
+                <select className="input select py-1.5 text-xs bg-white" {...register('from_account_id')}>
                   <option value="">Select Account</option>
                   {fromAccountType === 'bank'
                     ? bankAccounts.map((b: any) => <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance})</option>)
                     : cashAccounts.map((c: any) => <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance})</option>)
                   }
                 </select>
-                {errors.from_account_id && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.from_account_id.message}</p>}
+                {errors.from_account_id && <p className="text-red-500 text-[10px] mt-0.5 font-semibold">{errors.from_account_id.message}</p>}
               </div>
             </div>
 
             {/* DESTINATION ACCOUNT */}
-            <div className="p-4 bg-[#f8fafb] rounded-xl border border-[#e2e8e6] space-y-3">
-              <span className="text-xs uppercase font-bold tracking-wider text-[#4a6b62]">Destination (To)</span>
-              <div>
-                <label className="label">Account Type</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 text-sm text-[#4a6b62]">
-                    <input type="radio" value="bank" {...register('to_account_type')} className="accent-[#023020]" />
+            <div className="p-3 bg-[#f8fafb] rounded-xl border border-[#e2e8e6] space-y-2">
+              <div className="flex justify-between items-center border-b border-[#e2e8e6] pb-1">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-[#4a6b62]">Destination (To)</span>
+                <div className="flex gap-3">
+                  <label className="flex items-center gap-1.5 text-xs text-[#4a6b62] cursor-pointer">
+                    <input type="radio" value="bank" {...register('to_account_type')} className="accent-[#023020] w-3 h-3" />
                     <span>Bank</span>
                   </label>
-                  <label className="flex items-center gap-2 text-sm text-[#4a6b62]">
-                    <input type="radio" value="cash" {...register('to_account_type')} className="accent-[#023020]" />
+                  <label className="flex items-center gap-1.5 text-xs text-[#4a6b62] cursor-pointer">
+                    <input type="radio" value="cash" {...register('to_account_type')} className="accent-[#023020] w-3 h-3" />
                     <span>Cash</span>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="label">Select Destination Account</label>
-                <select className="input select bg-white" {...register('to_account_id')}>
+                <label className="label text-[10px] font-bold">Select Destination Account</label>
+                <select className="input select py-1.5 text-xs bg-white" {...register('to_account_id')}>
                   <option value="">Select Account</option>
                   {toAccountType === 'bank'
                     ? bankAccounts.map((b: any) => <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance})</option>)
                     : cashAccounts.map((c: any) => <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance})</option>)
                   }
                 </select>
-                {errors.to_account_id && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.to_account_id.message}</p>}
+                {errors.to_account_id && <p className="text-red-500 text-[10px] mt-0.5 font-semibold">{errors.to_account_id.message}</p>}
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="label">Amount (₹)</label>
-              <input type="number" step="0.01" placeholder="0.00" className="input" {...register('amount')} />
-              {errors.amount && <p className="text-red-500 text-[10px] mt-1 font-semibold">{errors.amount.message}</p>}
-            </div>
-
-            <div>
-              <label className="label">Reference Number (Optional)</label>
-              <input type="text" placeholder="e.g. Bank slip or memo number" className="input" {...register('reference_number')} />
-            </div>
-          </div>
-
+          {/* Row 3: Narration */}
           <div>
-            <label className="label">Narration</label>
-            <textarea placeholder="Purpose or context of internal fund transfer..." className="input h-20 resize-none" {...register('narration')}></textarea>
+            <label className="label text-[11px] font-bold">Narration <span className="text-[9px] text-[#8aa89f] font-normal">(Optional)</span></label>
+            <textarea placeholder="Purpose or context of internal fund transfer..." className="input h-12 py-1.5 text-xs resize-none" {...register('narration')}></textarea>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#e2e8e6]">
-            <button type="button" onClick={() => navigate('/dashboard')} className="btn-ghost px-5">
+          {/* Row 4: Action Buttons */}
+          <div className="flex justify-end gap-3 pt-3 border-t border-[#e2e8e6]">
+            <button type="button" onClick={() => navigate('/dashboard')} className="btn-ghost px-5 py-2 text-xs font-bold">
               Cancel
             </button>
-            <button type="submit" className="btn-primary px-6">
+            <button type="submit" className="btn-primary px-6 py-2 text-xs font-bold">
               Post Transfer
             </button>
           </div>

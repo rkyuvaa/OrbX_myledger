@@ -37,12 +37,12 @@ export const UserProfile: React.FC = () => {
       const res = await api.put('/auth/me', data);
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myProfile'] });
-      setProfileSuccessMsg('User identity details updated successfully!');
+      setProfileSuccessMsg('User details updated!');
     },
     onError: (err: any) => {
-      setProfileErrorMsg(err.response?.data?.detail || 'Failed to update user identity.');
+      setProfileErrorMsg(err.response?.data?.detail || 'Failed to update details.');
     },
   });
 
@@ -55,11 +55,11 @@ export const UserProfile: React.FC = () => {
       return res.data;
     },
     onSuccess: () => {
-      setPasswordSuccessMsg('Your security password has been changed successfully!');
+      setPasswordSuccessMsg('Password updated successfully!');
       resetPasswordForm();
     },
     onError: (err: any) => {
-      setPasswordErrorMsg(err.response?.data?.detail || 'Failed to change password. Please check your credentials.');
+      setPasswordErrorMsg(err.response?.data?.detail || 'Failed to update password.');
     },
   });
 
@@ -74,12 +74,12 @@ export const UserProfile: React.FC = () => {
     setPasswordSuccessMsg(null);
 
     if (values.new_password !== values.confirm_password) {
-      setPasswordErrorMsg('New passwords do not match. Please verify.');
+      setPasswordErrorMsg('New passwords do not match.');
       return;
     }
 
     if (values.new_password.length < 6) {
-      setPasswordErrorMsg('New password must be at least 6 characters long.');
+      setPasswordErrorMsg('Password must be at least 6 characters.');
       return;
     }
 
@@ -87,141 +87,140 @@ export const UserProfile: React.FC = () => {
   };
 
   if (isLoading) {
-    return <LoadingSkeleton rows={4} cols={2} />;
+    return <LoadingSkeleton rows={3} cols={2} />;
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-3">
       {/* Tab Header */}
-      <div className="page-header">
+      <div className="page-header pb-1">
         <div>
-          <h2 className="page-title">User Profile & Credentials</h2>
-          <p className="page-subtitle">Configure your login credentials, user ID, name, and password security</p>
+          <h2 className="page-title text-lg font-bold">User Profile & Credentials</h2>
+          <p className="page-subtitle text-xs">Configure your login credentials, user ID, name, and password security</p>
         </div>
       </div>
 
       {/* CARD 1: Identity Profile details */}
-      <div className="card bg-white p-6 shadow-sm border border-[#e2e8e6] rounded-2xl">
-        <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-4">
-          <div className="flex items-center gap-2 border-b pb-2">
-            <User className="w-5 h-5 text-[#023020]" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0d1f1a]">User Identity Profile</h3>
+      <div className="card bg-white p-4 shadow-sm border border-[#e2e8e6] rounded-2xl">
+        <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-3">
+          <div className="flex items-center gap-2 border-b border-[#e2e8e6] pb-1.5">
+            <User className="w-4.5 h-4.5 text-[#023020]" />
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#0d1f1a]">User Identity Profile</h3>
           </div>
 
           {profileSuccessMsg && (
-            <div className="p-3 bg-green-50 text-green-700 rounded-xl flex items-start gap-2 text-xs border border-green-100 animate-in fade-in duration-200">
+            <div className="p-2.5 bg-green-50 text-green-700 rounded-xl flex items-start gap-2 text-xs border border-green-100 animate-in fade-in duration-200">
               <CheckCircle2 className="w-4 h-4 shrink-0 text-green-600 mt-0.5" />
               <span>{profileSuccessMsg}</span>
             </div>
           )}
 
           {profileErrorMsg && (
-            <div className="p-3 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-xs border border-red-100 animate-in fade-in duration-200">
+            <div className="p-2.5 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-xs border border-red-100 animate-in fade-in duration-200">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
               <span>{profileErrorMsg}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="label">Full Name</label>
-              <input type="text" className="input font-semibold" required {...registerProfile('full_name')} />
+              <label className="label text-[10px] font-bold">Full Name</label>
+              <input type="text" className="input py-1.5 text-xs font-semibold" required {...registerProfile('full_name')} />
             </div>
             <div>
-              <label className="label">User Login ID (Email)</label>
-              <input type="email" className="input font-semibold" required {...registerProfile('email')} />
+              <label className="label text-[10px] font-bold">User Login ID (Email)</label>
+              <input type="email" className="input py-1.5 text-xs font-semibold" required {...registerProfile('email')} />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="label">System User Role</label>
+              <label className="label text-[10px] font-bold">System User Role</label>
               <input 
                 type="text" 
                 disabled 
-                className="input bg-[#f8fafb] text-gray-500 cursor-not-allowed font-bold capitalize" 
+                className="input bg-[#f8fafb] text-gray-500 cursor-not-allowed font-bold capitalize py-1.5 text-xs" 
                 value={me?.role || 'User'} 
               />
             </div>
             <div>
-              <label className="label">Account Status</label>
-              <div className="h-10 flex items-center px-3 border border-[#e2e8e6] bg-[#f8fafb] rounded-xl text-xs font-bold text-emerald-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
+              <label className="label text-[10px] font-bold">Account Status</label>
+              <div className="h-8 flex items-center px-3 border border-[#e2e8e6] bg-[#f8fafb] rounded-xl text-xs font-bold text-emerald-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></span>
                 <span>Active Account</span>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button type="submit" disabled={updateProfileMutation.isPending} className="btn-primary px-5 gap-1.5 cursor-pointer text-xs font-bold py-2.5">
-              <Save className="w-4 h-4" />
-              <span>{updateProfileMutation.isPending ? 'Updating...' : 'Save Profile Details'}</span>
+          <div className="flex justify-end gap-3 pt-1">
+            <button type="submit" disabled={updateProfileMutation.isPending} className="btn-primary px-5 py-2 text-xs gap-1.5 cursor-pointer font-bold">
+              <Save className="w-3.5 h-3.5" />
+              <span>{updateProfileMutation.isPending ? 'Updating...' : 'Save Profile'}</span>
             </button>
           </div>
         </form>
       </div>
 
       {/* CARD 2: Password Security credentials */}
-      <div className="card bg-white p-6 shadow-sm border border-[#e2e8e6] rounded-2xl">
-        <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-4">
-          <div className="flex items-center gap-2 border-b pb-2">
-            <Lock className="w-5 h-5 text-[#023020]" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0d1f1a]">Credentials & Password Security</h3>
+      <div className="card bg-white p-4 shadow-sm border border-[#e2e8e6] rounded-2xl">
+        <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-3">
+          <div className="flex items-center gap-2 border-b border-[#e2e8e6] pb-1.5">
+            <Lock className="w-4.5 h-4.5 text-[#023020]" />
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#0d1f1a]">Credentials & Password Security</h3>
           </div>
 
           {passwordSuccessMsg && (
-            <div className="p-3 bg-green-50 text-green-700 rounded-xl flex items-start gap-2 text-xs border border-green-100 animate-in fade-in duration-200">
+            <div className="p-2.5 bg-green-50 text-green-700 rounded-xl flex items-start gap-2 text-xs border border-green-100 animate-in fade-in duration-200">
               <CheckCircle2 className="w-4 h-4 shrink-0 text-green-600 mt-0.5" />
               <span>{passwordSuccessMsg}</span>
             </div>
           )}
 
           {passwordErrorMsg && (
-            <div className="p-3 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-xs border border-red-100 animate-in fade-in duration-200">
+            <div className="p-2.5 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-xs border border-red-100 animate-in fade-in duration-200">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
               <span>{passwordErrorMsg}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="label">Current Password</label>
+              <label className="label text-[10px] font-bold">Current Password</label>
               <input 
                 type="password" 
                 placeholder="••••••••" 
                 required 
-                className="input font-semibold" 
+                className="input py-1.5 text-xs font-semibold" 
                 {...registerPassword('current_password')} 
               />
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="label">New Password</label>
-                <input 
-                  type="password" 
-                  placeholder="••••••••" 
-                  required 
-                  className="input font-semibold" 
-                  {...registerPassword('new_password')} 
-                />
-              </div>
-              <div>
-                <label className="label">Confirm New Password</label>
-                <input 
-                  type="password" 
-                  placeholder="••••••••" 
-                  required 
-                  className="input font-semibold" 
-                  {...registerPassword('confirm_password')} 
-                />
-              </div>
+            <div>
+              <label className="label text-[10px] font-bold">New Password</label>
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                required 
+                className="input py-1.5 text-xs font-semibold" 
+                {...registerPassword('new_password')} 
+              />
+            </div>
+            
+            <div>
+              <label className="label text-[10px] font-bold">Confirm New Password</label>
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                required 
+                className="input py-1.5 text-xs font-semibold" 
+                {...registerPassword('confirm_password')} 
+              />
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button type="submit" disabled={changePasswordMutation.isPending} className="btn-primary px-5 gap-1.5 cursor-pointer text-xs font-bold py-2.5">
-              <Key className="w-4 h-4" />
+          <div className="flex justify-end gap-3 pt-1">
+            <button type="submit" disabled={changePasswordMutation.isPending} className="btn-primary px-5 py-2 text-xs gap-1.5 cursor-pointer font-bold">
+              <Key className="w-3.5 h-3.5" />
               <span>{changePasswordMutation.isPending ? 'Updating...' : 'Change Password'}</span>
             </button>
           </div>
