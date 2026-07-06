@@ -71,3 +71,13 @@ STEP 6: ACCESS THE APPLICATION
 Initial Seed Credentials:
 - Email/Username: admin@orbxledger.com
 - Password: Admin@123
+
+
+STEP 7: CREDENTIAL RECOVERY / PASSWORD RESET
+--------------------------------------------
+If you forget your username or password, run the following interactive command on your server inside the root directory (`OrbX_myledger`):
+
+sudo docker compose exec -it backend python reset_password.py
+
+This tool will list all registered users (showing their emails/usernames) and allow you to reset the password for any selected user.
+
