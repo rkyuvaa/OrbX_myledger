@@ -205,13 +205,31 @@ export const Daybook: React.FC = () => {
   const handlePrint = async (voucherId: string, voucherType: string) => {
     try {
       setReversalError(null);
+      if (!voucherId) {
+        setReversalError("Voucher ID is missing for this transaction.");
+        return;
+      }
+
       let endpoint = '';
-      if (voucherType === 'RCV') endpoint = `/receipts/${voucherId}`;
-      else if (voucherType === 'PAY') endpoint = `/payments/${voucherId}`;
-      else if (voucherType === 'TRF') endpoint = `/transfers/${voucherId}`;
+      const typeUpper = (voucherType || '').toUpperCase();
+      if (typeUpper === 'RCV' || typeUpper === 'RECEIPT') endpoint = `/receipts/${voucherId}`;
+      else if (typeUpper === 'PAY' || typeUpper === 'PAYMENT') endpoint = `/payments/${voucherId}`;
+      else if (typeUpper === 'TRF' || typeUpper === 'TRANSFER') endpoint = `/transfers/${voucherId}`;
+      else {
+        setReversalError(`Unsupported voucher type: ${voucherType}`);
+        return;
+      }
 
       const res = await api.get(endpoint);
       const voucher = res.data;
+
+      if (!voucher) {
+        throw new Error("No data returned from the server.");
+      }
+
+      if (voucher.amount === undefined || voucher.amount === null) {
+        throw new Error("Voucher amount is missing.");
+      }
 
       const companyName = companyData?.name || 'Orbx Corporation';
       const companyGstin = companyData?.gstin ? `GSTIN: ${companyData.gstin}` : '';
@@ -233,7 +251,7 @@ export const Daybook: React.FC = () => {
 
       let htmlContent = '';
 
-      if (voucherType === 'RCV') {
+      if (typeUpper === 'RCV' || typeUpper === 'RECEIPT') {
         htmlContent = `
           <html>
             <head>
@@ -427,7 +445,7 @@ export const Daybook: React.FC = () => {
             </body>
           </html>
         `;
-      } else if (voucherType === 'PAY') {
+      } else if (typeUpper === 'PAY' || typeUpper === 'PAYMENT') {
         htmlContent = `
           <html>
             <head>
@@ -621,7 +639,7 @@ export const Daybook: React.FC = () => {
             </body>
           </html>
         `;
-      } else if (voucherType === 'TRF') {
+      } else if (typeUpper === 'TRF' || typeUpper === 'TRANSFER') {
         htmlContent = `
           <html>
             <head>
@@ -837,7 +855,9 @@ export const Daybook: React.FC = () => {
         }, 500);
       }
     } catch (err: any) {
-      setReversalError(err.response?.data?.detail || 'Failed to print voucher.');
+      console.error('Print failed:', err);
+      const msg = err.response?.data?.detail || err.message || 'Failed to print voucher.';
+      setReversalError(msg);
     }
   };
 
