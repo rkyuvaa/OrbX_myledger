@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, RotateCcw, AlertCircle, Calendar, RefreshCw, Edit2, X } from 'lucide-react';
+import { Search, RotateCcw, AlertCircle, Calendar, RefreshCw, Edit2, X, Printer } from 'lucide-react';
 import api from '../lib/api';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 
@@ -76,6 +76,15 @@ export const Daybook: React.FC = () => {
 
   const bankAccounts = accountsData?.bank_accounts || [];
   const cashAccounts = accountsData?.cash_accounts || [];
+
+  // Fetch Company Profile for printing header
+  const { data: companyData } = useQuery({
+    queryKey: ['companyProfile'],
+    queryFn: async () => {
+      const res = await api.get('/config/company');
+      return res.data;
+    },
+  });
 
   // Edit State
   const [editingVoucher, setEditingVoucher] = useState<{ id: string; type: string; data: any } | null>(null);
@@ -191,6 +200,645 @@ export const Daybook: React.FC = () => {
     }
 
     editMutation.mutate({ id: editingVoucher.id, type: editingVoucher.type, payload });
+  };
+
+  const handlePrint = async (voucherId: string, voucherType: string) => {
+    try {
+      setReversalError(null);
+      let endpoint = '';
+      if (voucherType === 'RCV') endpoint = `/receipts/${voucherId}`;
+      else if (voucherType === 'PAY') endpoint = `/payments/${voucherId}`;
+      else if (voucherType === 'TRF') endpoint = `/transfers/${voucherId}`;
+
+      const res = await api.get(endpoint);
+      const voucher = res.data;
+
+      const companyName = companyData?.name || 'Orbx Corporation';
+      const companyGstin = companyData?.gstin ? `GSTIN: ${companyData.gstin}` : '';
+      const companyPhone = companyData?.phone ? `Phone: ${companyData.phone}` : '';
+      const companyEmail = companyData?.email ? `Email: ${companyData.email}` : '';
+      const companyAddress = companyData?.address || '';
+
+      const branchName = voucher.branch_name || 'Main Branch';
+      const accountName = voucher.payment_mode === 'bank' 
+        ? voucher.bank_account_name 
+        : voucher.cash_account_name;
+
+      const formattedAmount = new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+      }).format(voucher.amount);
+
+      const amountInWords = numberToWords(voucher.amount) + ' Only';
+
+      let htmlContent = '';
+
+      if (voucherType === 'RCV') {
+        htmlContent = `
+          <html>
+            <head>
+              <title>Print Voucher - ${voucher.voucher_number}</title>
+              <style>
+                @page {
+                  size: A5 landscape;
+                  margin: 8mm;
+                }
+                body {
+                  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                  color: #333;
+                  margin: 0;
+                  padding: 0;
+                  font-size: 11px;
+                  line-height: 1.4;
+                }
+                .voucher-container {
+                  border: 1px solid #ccc;
+                  padding: 8mm;
+                  border-radius: 4px;
+                  box-sizing: border-box;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: space-between;
+                }
+                .header {
+                  display: flex;
+                  justify-content: space-between;
+                  border-bottom: 2px solid #023020;
+                  padding-bottom: 3px;
+                  margin-bottom: 5px;
+                }
+                .company-info h1 {
+                  font-size: 16px;
+                  margin: 0 0 3px 0;
+                  color: #023020;
+                  text-transform: uppercase;
+                  font-weight: bold;
+                }
+                .company-info p {
+                  margin: 0;
+                  color: #666;
+                  font-size: 10px;
+                }
+                .voucher-title {
+                  text-align: right;
+                }
+                .voucher-title h2 {
+                  font-size: 14px;
+                  margin: 0 0 3px 0;
+                  color: #023020;
+                  font-weight: bold;
+                  letter-spacing: 1px;
+                }
+                .voucher-title p {
+                  margin: 0;
+                  font-weight: bold;
+                  font-size: 10px;
+                }
+                .details-grid {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 4px;
+                  margin-top: 6px;
+                }
+                .detail-item {
+                  display: flex;
+                  border-bottom: 1px dashed #ddd;
+                  padding: 3px 0;
+                }
+                .detail-label {
+                  font-weight: bold;
+                  color: #555;
+                  width: 100px;
+                  flex-shrink: 0;
+                }
+                .detail-value {
+                  color: #111;
+                  word-break: break-all;
+                }
+                .amount-row {
+                  margin-top: 10px;
+                  background-color: #f5fcf8;
+                  border: 1px solid #b2dfdb;
+                  padding: 6px 10px;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  border-radius: 4px;
+                }
+                .amount-words {
+                  font-style: italic;
+                  color: #555;
+                  font-size: 10px;
+                }
+                .amount-value {
+                  font-size: 14px;
+                  font-weight: bold;
+                  color: #023020;
+                }
+                .signatures {
+                  display: flex;
+                  justify-content: space-between;
+                  margin-top: 25px;
+                  padding-top: 5px;
+                }
+                .signature-box {
+                  text-align: center;
+                  width: 30%;
+                }
+                .signature-line {
+                  border-top: 1px solid #999;
+                  margin-bottom: 3px;
+                }
+                .signature-label {
+                  font-size: 9px;
+                  color: #666;
+                  text-transform: uppercase;
+                  font-weight: bold;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="voucher-container">
+                <div>
+                  <div class="header">
+                    <div class="company-info">
+                      <h1>${companyName}</h1>
+                      <p>${companyAddress}</p>
+                      <p>${companyPhone} | ${companyEmail}</p>
+                      <p><strong>${companyGstin}</strong></p>
+                    </div>
+                    <div class="voucher-title">
+                      <h2>RECEIPT VOUCHER</h2>
+                      <p>Voucher No: <span style="color:#e53935">${voucher.voucher_number}</span></p>
+                      <p>Date: ${new Date(voucher.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="details-grid">
+                    <div class="detail-item" style="grid-column: span 2">
+                      <span class="detail-label">Received From:</span>
+                      <span class="detail-value" style="font-weight: bold; font-size:11px;">${voucher.received_from}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Branch Name:</span>
+                      <span class="detail-value">${branchName}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">${voucher.payment_mode === 'bank' ? 'Bank Account:' : 'Cash Account:'}</span>
+                      <span class="detail-value">${accountName}</span>
+                    </div>
+                    <div class="detail-item" style="grid-column: span 2">
+                      <span class="detail-label">Reference No:</span>
+                      <span class="detail-value">${voucher.reference_number || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item" style="grid-column: span 2">
+                      <span class="detail-label">Narration:</span>
+                      <span class="detail-value">${voucher.narration || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div class="amount-row">
+                    <div class="amount-words">
+                      <strong>Amount in words:</strong><br/>
+                      ${amountInWords}
+                    </div>
+                    <div class="amount-value">${formattedAmount}</div>
+                  </div>
+                  
+                  <div class="signatures">
+                    <div class="signature-box">
+                      <div class="signature-line"></div>
+                      <div class="signature-label">Prepared By</div>
+                    </div>
+                    <div class="signature-box">
+                      <div class="signature-line"></div>
+                      <div class="signature-label">Receiver's Signature</div>
+                    </div>
+                    <div class="signature-box">
+                      <div class="signature-line"></div>
+                      <div class="signature-label">Authorized Signatory</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </body>
+          </html>
+        `;
+      } else if (voucherType === 'PAY') {
+        htmlContent = `
+          <html>
+            <head>
+              <title>Print Voucher - ${voucher.voucher_number}</title>
+              <style>
+                @page {
+                  size: A5 landscape;
+                  margin: 8mm;
+                }
+                body {
+                  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                  color: #333;
+                  margin: 0;
+                  padding: 0;
+                  font-size: 11px;
+                  line-height: 1.4;
+                }
+                .voucher-container {
+                  border: 1px solid #ccc;
+                  padding: 8mm;
+                  border-radius: 4px;
+                  box-sizing: border-box;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: space-between;
+                }
+                .header {
+                  display: flex;
+                  justify-content: space-between;
+                  border-bottom: 2px solid #023020;
+                  padding-bottom: 3px;
+                  margin-bottom: 5px;
+                }
+                .company-info h1 {
+                  font-size: 16px;
+                  margin: 0 0 3px 0;
+                  color: #023020;
+                  text-transform: uppercase;
+                  font-weight: bold;
+                }
+                .company-info p {
+                  margin: 0;
+                  color: #666;
+                  font-size: 10px;
+                }
+                .voucher-title {
+                  text-align: right;
+                }
+                .voucher-title h2 {
+                  font-size: 14px;
+                  margin: 0 0 3px 0;
+                  color: #023020;
+                  font-weight: bold;
+                  letter-spacing: 1px;
+                }
+                .voucher-title p {
+                  margin: 0;
+                  font-weight: bold;
+                  font-size: 10px;
+                }
+                .details-grid {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 4px;
+                  margin-top: 6px;
+                }
+                .detail-item {
+                  display: flex;
+                  border-bottom: 1px dashed #ddd;
+                  padding: 3px 0;
+                }
+                .detail-label {
+                  font-weight: bold;
+                  color: #555;
+                  width: 100px;
+                  flex-shrink: 0;
+                }
+                .detail-value {
+                  color: #111;
+                  word-break: break-all;
+                }
+                .amount-row {
+                  margin-top: 10px;
+                  background-color: #f5fcf8;
+                  border: 1px solid #b2dfdb;
+                  padding: 6px 10px;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  border-radius: 4px;
+                }
+                .amount-words {
+                  font-style: italic;
+                  color: #555;
+                  font-size: 10px;
+                }
+                .amount-value {
+                  font-size: 14px;
+                  font-weight: bold;
+                  color: #023020;
+                }
+                .signatures {
+                  display: flex;
+                  justify-content: space-between;
+                  margin-top: 25px;
+                  padding-top: 5px;
+                }
+                .signature-box {
+                  text-align: center;
+                  width: 30%;
+                }
+                .signature-line {
+                  border-top: 1px solid #999;
+                  margin-bottom: 3px;
+                }
+                .signature-label {
+                  font-size: 9px;
+                  color: #666;
+                  text-transform: uppercase;
+                  font-weight: bold;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="voucher-container">
+                <div>
+                  <div class="header">
+                    <div class="company-info">
+                      <h1>${companyName}</h1>
+                      <p>${companyAddress}</p>
+                      <p>${companyPhone} | ${companyEmail}</p>
+                      <p><strong>${companyGstin}</strong></p>
+                    </div>
+                    <div class="voucher-title">
+                      <h2>PAYMENT VOUCHER</h2>
+                      <p>Voucher No: <span style="color:#e53935">${voucher.voucher_number}</span></p>
+                      <p>Date: ${new Date(voucher.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="details-grid">
+                    <div class="detail-item" style="grid-column: span 2">
+                      <span class="detail-label">Paid To:</span>
+                      <span class="detail-value" style="font-weight: bold; font-size:11px;">${voucher.paid_to}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">Branch Name:</span>
+                      <span class="detail-value">${branchName}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">${voucher.payment_mode === 'bank' ? 'Bank Account:' : 'Cash Account:'}</span>
+                      <span class="detail-value">${accountName}</span>
+                    </div>
+                    <div class="detail-item" style="grid-column: span 2">
+                      <span class="detail-label">Reference No:</span>
+                      <span class="detail-value">${voucher.reference_number || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item" style="grid-column: span 2">
+                      <span class="detail-label">Narration:</span>
+                      <span class="detail-value">${voucher.narration || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div class="amount-row">
+                    <div class="amount-words">
+                      <strong>Amount in words:</strong><br/>
+                      ${amountInWords}
+                    </div>
+                    <div class="amount-value">${formattedAmount}</div>
+                  </div>
+                  
+                  <div class="signatures">
+                    <div class="signature-box">
+                      <div class="signature-line"></div>
+                      <div class="signature-label">Prepared By</div>
+                    </div>
+                    <div class="signature-box">
+                      <div class="signature-line"></div>
+                      <div class="signature-label">Receiver's Signature</div>
+                    </div>
+                    <div class="signature-box">
+                      <div class="signature-line"></div>
+                      <div class="signature-label">Authorized Signatory</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </body>
+          </html>
+        `;
+      } else if (voucherType === 'TRF') {
+        htmlContent = `
+          <html>
+            <head>
+              <title>Print Voucher - ${voucher.voucher_number}</title>
+              <style>
+                @page {
+                  size: A5 landscape;
+                  margin: 8mm;
+                }
+                body {
+                  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                  color: #333;
+                  margin: 0;
+                  padding: 0;
+                  font-size: 11px;
+                  line-height: 1.4;
+                }
+                .voucher-container {
+                  border: 1px solid #ccc;
+                  padding: 8mm;
+                  border-radius: 4px;
+                  box-sizing: border-box;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: space-between;
+                }
+                .header {
+                  display: flex;
+                  justify-content: space-between;
+                  border-bottom: 2px solid #023020;
+                  padding-bottom: 3px;
+                  margin-bottom: 5px;
+                }
+                .company-info h1 {
+                  font-size: 16px;
+                  margin: 0 0 3px 0;
+                  color: #023020;
+                  text-transform: uppercase;
+                  font-weight: bold;
+                }
+                .company-info p {
+                  margin: 0;
+                  color: #666;
+                  font-size: 10px;
+                }
+                .voucher-title {
+                  text-align: right;
+                }
+                .voucher-title h2 {
+                  font-size: 14px;
+                  margin: 0 0 3px 0;
+                  color: #023020;
+                  font-weight: bold;
+                  letter-spacing: 1px;
+                }
+                .voucher-title p {
+                  margin: 0;
+                  font-weight: bold;
+                  font-size: 10px;
+                }
+                .details-grid {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 4px;
+                  margin-top: 6px;
+                }
+                .detail-item {
+                  display: flex;
+                  border-bottom: 1px dashed #ddd;
+                  padding: 3px 0;
+                }
+                .detail-label {
+                  font-weight: bold;
+                  color: #555;
+                  width: 100px;
+                  flex-shrink: 0;
+                }
+                .detail-value {
+                  color: #111;
+                  word-break: break-all;
+                }
+                .amount-row {
+                  margin-top: 10px;
+                  background-color: #f5fcf8;
+                  border: 1px solid #b2dfdb;
+                  padding: 6px 10px;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  border-radius: 4px;
+                }
+                .amount-words {
+                  font-style: italic;
+                  color: #555;
+                  font-size: 10px;
+                }
+                .amount-value {
+                  font-size: 14px;
+                  font-weight: bold;
+                  color: #023020;
+                }
+                .signatures {
+                  display: flex;
+                  justify-content: space-between;
+                  margin-top: 25px;
+                  padding-top: 5px;
+                }
+                .signature-box {
+                  text-align: center;
+                  width: 30%;
+                }
+                .signature-line {
+                  border-top: 1px solid #999;
+                  margin-bottom: 3px;
+                }
+                .signature-label {
+                  font-size: 9px;
+                  color: #666;
+                  text-transform: uppercase;
+                  font-weight: bold;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="voucher-container">
+                <div>
+                  <div class="header">
+                    <div class="company-info">
+                      <h1>${companyName}</h1>
+                      <p>${companyAddress}</p>
+                      <p>${companyPhone} | ${companyEmail}</p>
+                      <p><strong>${companyGstin}</strong></p>
+                    </div>
+                    <div class="voucher-title">
+                      <h2>FUND TRANSFER VOUCHER</h2>
+                      <p>Voucher No: <span style="color:#e53935">${voucher.voucher_number}</span></p>
+                      <p>Date: ${new Date(voucher.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="details-grid">
+                    <div class="detail-item" style="grid-column: span 2">
+                      <span class="detail-label">From Account:</span>
+                      <span class="detail-value" style="font-weight: bold;">${voucher.from_account_name} (${voucher.from_account_type})</span>
+                    </div>
+                    <div class="detail-item" style="grid-column: span 2">
+                      <span class="detail-label">To Account:</span>
+                      <span class="detail-value" style="font-weight: bold;">${voucher.to_account_name} (${voucher.to_account_type})</span>
+                    </div>
+                    <div class="detail-item" style="grid-column: span 2">
+                      <span class="detail-label">Reference No:</span>
+                      <span class="detail-value">${voucher.reference_number || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item" style="grid-column: span 2">
+                      <span class="detail-label">Narration:</span>
+                      <span class="detail-value">${voucher.narration || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div class="amount-row">
+                    <div class="amount-words">
+                      <strong>Amount in words:</strong><br/>
+                      ${amountInWords}
+                    </div>
+                    <div class="amount-value">${formattedAmount}</div>
+                  </div>
+                  
+                  <div class="signatures">
+                    <div class="signature-box">
+                      <div class="signature-line"></div>
+                      <div class="signature-label">Prepared By</div>
+                    </div>
+                    <div class="signature-box">
+                      <div class="signature-line"></div>
+                      <div class="signature-label">Verified By</div>
+                    </div>
+                    <div class="signature-box">
+                      <div class="signature-line"></div>
+                      <div class="signature-label">Authorized Signatory</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </body>
+          </html>
+        `;
+      }
+
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentWindow?.document || iframe.contentDocument;
+      if (doc) {
+        doc.open();
+        doc.write(htmlContent);
+        doc.close();
+
+        setTimeout(() => {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+          }, 1000);
+        }, 500);
+      }
+    } catch (err: any) {
+      setReversalError(err.response?.data?.detail || 'Failed to print voucher.');
+    }
   };
 
   const fmt = (val: number) => 
@@ -364,6 +1012,15 @@ export const Daybook: React.FC = () => {
                         )}
                       </td>
                       <td className="text-right flex items-center justify-end gap-1.5">
+                        {!entry.particulars.includes('REVERSAL') && !entry.narration?.includes('REVERSAL') && (
+                          <button
+                            onClick={() => handlePrint(entry.voucher_id, entry.voucher_type)}
+                            className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                            title="Print transaction"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </button>
+                        )}
                         {!entry.particulars.includes('REVERSAL') && !entry.narration?.includes('REVERSAL') && (
                           <button
                             onClick={() => handleEdit(entry.voucher_id, entry.voucher_type)}
