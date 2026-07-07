@@ -915,6 +915,42 @@ async def get_dashboard_summary(db: AsyncSession) -> DashboardSummaryOut:
     )
     branch_collection_today = float(branch_today_result.scalar())
 
+    # Today's cheques calculations (based on Date: YYYY-MM-DD pattern in reference number)
+    today_str = today.strftime("%Y-%m-%d")
+    
+    # Received cheques clearing today
+    rcv_cheques_result = await db.execute(
+        select(ReceiptVoucher)
+        .where(
+            ReceiptVoucher.payment_mode == "bank",
+            ReceiptVoucher.is_reversed == False,
+            ReceiptVoucher.reference_number.like(f"%Date: {today_str}%")
+        )
+    )
+    today_received_cheques_clear = float(sum(v.amount for v in rcv_cheques_result.scalars().all()))
+
+    # Given cheques clearing today
+    pay_cheques_result = await db.execute(
+        select(PaymentVoucher)
+        .where(
+            PaymentVoucher.payment_mode == "bank",
+            PaymentVoucher.is_reversed == False,
+            PaymentVoucher.reference_number.like(f"%Date: {today_str}%")
+        )
+    )
+    exp_cheques_result = await db.execute(
+        select(ExpenseVoucher)
+        .where(
+            ExpenseVoucher.payment_mode == "bank",
+            ExpenseVoucher.is_reversed == False,
+            ExpenseVoucher.reference_number.like(f"%Date: {today_str}%")
+        )
+    )
+    today_given_cheques_clear = float(
+        sum(v.amount for v in pay_cheques_result.scalars().all()) + 
+        sum(v.amount for v in exp_cheques_result.scalars().all())
+    )
+
     kpis = DashboardKPIOut(
         total_bank_balance=total_bank_balance,
         total_cash_balance=total_cash_balance,
@@ -923,6 +959,8 @@ async def get_dashboard_summary(db: AsyncSession) -> DashboardSummaryOut:
         today_expenses=today_expenses,
         branch_collection_today=branch_collection_today,
         account_tiles=account_tiles,
+        today_received_cheques_clear=today_received_cheques_clear,
+        today_given_cheques_clear=today_given_cheques_clear,
     )
 
     # Monthly flow (last 6 months)

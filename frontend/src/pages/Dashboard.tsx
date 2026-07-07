@@ -78,7 +78,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard 
           title="Today's Receipts" 
           value={fmt(kpis.today_receipts)} 
@@ -111,6 +111,13 @@ export const Dashboard: React.FC = () => {
           value={fmt(kpis.total_cash_balance)} 
           icon={Wallet} 
           description="Cash in Hand" 
+        />
+        <StatCard 
+          title="Cheques clearing today" 
+          value={`${fmt(kpis.today_received_cheques_clear)} / ${fmt(kpis.today_given_cheques_clear)}`} 
+          icon={Landmark} 
+          description="In (Recd) / Out (Given)"
+          valueClass="text-emerald-950 font-extrabold text-sm sm:text-base md:text-[15px] lg:text-[13px] xl:text-[15px] truncate"
         />
         <StatCard 
           title="Branch Collection Today" 

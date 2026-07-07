@@ -24,6 +24,7 @@ export const Receive: React.FC = () => {
   const [valCashAccountId, setValCashAccountId] = useState('');
   const [valReferenceNumber, setValReferenceNumber] = useState('');
   const [valNarration, setValNarration] = useState('');
+  const [valChequeDate, setValChequeDate] = useState(new Date().toISOString().substring(0, 10));
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -388,7 +389,7 @@ export const Receive: React.FC = () => {
 
     const refNum = valReferenceNumber.trim();
     const finalReferenceNumber = isCheque 
-      ? (refNum.toLowerCase().startsWith('cheque') ? refNum : `Cheque No: ${refNum}`)
+      ? (refNum.toLowerCase().startsWith('cheque') ? refNum : `Cheque No: ${refNum} | Date: ${valChequeDate}`)
       : (refNum || undefined);
 
     const payload = {
@@ -739,26 +740,41 @@ export const Receive: React.FC = () => {
 
             {step === 7 && (
               <div className="space-y-4 relative">
-                <h3 className="text-base font-bold text-[#0d1f1a]">
-                  {isCheque ? 'Cheque Number' : <>Reference Number <span className="text-[10px] font-semibold text-[#8aa89f]">(Optional)</span></>}
-                </h3>
-                <input
-                  type="text"
-                  placeholder={isCheque ? "Enter 6-digit cheque number..." : "Transaction ID, Cheque, or Transfer reference ID..."}
-                  value={valReferenceNumber}
-                  onChange={(e) => handleReferenceChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (isCheque && !valReferenceNumber.trim()) return;
-                      saveToHistory('myledger_receive_references', valReferenceNumber);
-                      setRefSuggestions([]);
-                      setStep(8);
-                    }
-                  }}
-                  autoFocus
-                  className="input text-base font-semibold py-2.5"
-                />
+                <div className={`${isCheque ? 'grid grid-cols-2 gap-4' : 'space-y-4'}`}>
+                  <div>
+                    <h3 className="text-base font-bold text-[#0d1f1a] mb-2">
+                      {isCheque ? 'Cheque Number' : <>Reference Number <span className="text-[10px] font-semibold text-[#8aa89f]">(Optional)</span></>}
+                    </h3>
+                    <input
+                      type="text"
+                      placeholder={isCheque ? "Enter 6-digit cheque number..." : "Transaction ID, Cheque, or Transfer reference ID..."}
+                      value={valReferenceNumber}
+                      onChange={(e) => handleReferenceChange(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (isCheque && !valReferenceNumber.trim()) return;
+                          saveToHistory('myledger_receive_references', valReferenceNumber);
+                          setRefSuggestions([]);
+                          setStep(8);
+                        }
+                      }}
+                      autoFocus
+                      className="input text-base font-semibold py-2.5"
+                    />
+                  </div>
+                  {isCheque && (
+                    <div>
+                      <h3 className="text-base font-bold text-[#0d1f1a] mb-2">Cheque Date</h3>
+                      <input
+                        type="date"
+                        value={valChequeDate}
+                        onChange={(e) => setValChequeDate(e.target.value)}
+                        className="input text-base font-semibold py-2.5"
+                      />
+                    </div>
+                  )}
+                </div>
                 {isCheque && (
                   <button
                     type="button"
@@ -773,7 +789,7 @@ export const Receive: React.FC = () => {
                     Confirm Cheque Number
                   </button>
                 )}
-                {valReferenceNumber.trim().length > 0 && (
+                {valReferenceNumber.trim().length > 0 && !isCheque && (
                   <div className="absolute left-0 right-0 z-55 bg-white border border-[#e2e8e6] rounded-xl shadow-lg mt-1 max-h-[145px] overflow-y-auto">
                     <button
                       onClick={() => {

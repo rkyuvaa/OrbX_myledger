@@ -457,6 +457,8 @@ class DashboardKPIOut(BaseModel):
     today_expenses: float
     branch_collection_today: float
     account_tiles: List[BalanceTileOut]
+    today_received_cheques_clear: float = 0.0
+    today_given_cheques_clear: float = 0.0
 
 
 class MonthlyFlowPoint(BaseModel):
