@@ -340,6 +340,7 @@ class DaybookEntryOut(BaseModel):
     narration: Optional[str]
     account_type: Optional[str]
     account_id: Optional[str]
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

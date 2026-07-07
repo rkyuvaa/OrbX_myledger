@@ -1064,6 +1064,22 @@ export const Daybook: React.FC = () => {
   const fmt = (val: number) => 
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}-${month}-${year}`;
+  };
+
+  const formatTime = (isoString: string) => {
+    if (!isoString) return '';
+    try {
+      const d = new Date(isoString);
+      return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    } catch (e) {
+      return '';
+    }
+  };
+
   return (
     <div className="space-y-6">
 
@@ -1198,7 +1214,18 @@ export const Daybook: React.FC = () => {
                   entries.map((entry: any) => (
                     <tr key={entry.id} className={`${entry.credit > 0 ? 'bg-green-50/20' : 'bg-red-50/10'}`}>
                       <td className="font-bold text-[#023020] whitespace-nowrap">{entry.voucher_number}</td>
-                      <td className="whitespace-nowrap">{entry.date}</td>
+                      <td className="whitespace-nowrap">
+                        <div className="flex flex-col justify-center leading-tight">
+                          <span className="font-semibold text-xs text-[#0d1f1a]">
+                            {formatDate(entry.date)}
+                          </span>
+                          {entry.created_at && (
+                            <span className="text-[10px] text-[#8aa89f] font-normal mt-0.5">
+                              {formatTime(entry.created_at)}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[180px]" title={entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ')}>
                         <span className="text-xs font-semibold text-[#4a6b62]">
                           {(() => {

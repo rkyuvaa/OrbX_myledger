@@ -28,7 +28,7 @@ async def get_daybook(
     current_user: User = Depends(get_current_user),
 ):
     """Fetch daybook entries with optional filters. Returns chronological register."""
-    q = select(DaybookEntry).order_by(DaybookEntry.date.asc(), DaybookEntry.created_at.asc())
+    q = select(DaybookEntry).order_by(DaybookEntry.date.desc(), DaybookEntry.created_at.desc())
 
     if from_date:
         q = q.where(DaybookEntry.date >= from_date)
@@ -77,5 +77,6 @@ async def get_daybook(
             narration=e.narration,
             account_type=e.account_type,
             account_id=e.account_id,
+            created_at=e.created_at,
         ))
     return output
