@@ -14,12 +14,16 @@ async def main():
             return
 
         print("\n--- User Modification Timestamps ---")
+        from datetime import timedelta
         for idx, u in enumerate(users, start=1):
-            # Print creation and last modified timestamps
+            # Convert to IST (UTC + 5:30)
+            created_ist = u.created_at + timedelta(hours=5, minutes=30)
+            modified_ist = u.updated_at + timedelta(hours=5, minutes=30)
+
             print(f"{idx}. Email: {u.email}")
-            print(f"   Created At:    {u.created_at.strftime('%Y-%m-%d %H:%M:%S %Z')}")
-            print(f"   Last Modified: {u.updated_at.strftime('%Y-%m-%d %H:%M:%S %Z')}")
-            print("-" * 40)
+            print(f"   Created At:    {u.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC  |  {created_ist.strftime('%Y-%m-%d %H:%M:%S')} IST")
+            print(f"   Last Modified: {u.updated_at.strftime('%Y-%m-%d %H:%M:%S')} UTC  |  {modified_ist.strftime('%Y-%m-%d %H:%M:%S')} IST")
+            print("-" * 75)
         print()
 
 if __name__ == "__main__":
