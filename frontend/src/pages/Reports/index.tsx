@@ -105,12 +105,6 @@ export const Reports: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="page-header">
-        <div>
-          <h2 className="page-title">Corporate Reports</h2>
-          <p className="page-subtitle">Generate export-ready cash, bank, and branch metrics</p>
-        </div>
-      </div>
 
       {/* Report Switcher & Date Filters */}
       <div className="card bg-white p-5 border border-[#e2e8e6] shadow-xs space-y-4">

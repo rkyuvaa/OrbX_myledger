@@ -59,19 +59,15 @@ export const Ledger: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="page-header print:hidden">
-        <div>
-          <h2 className="page-title">Ledger Book</h2>
-          <p className="page-subtitle">Detailed account ledgers and transaction statements</p>
-        </div>
-        {statement && (
+      {/* Page Header Print Button (right-aligned) */}
+      {statement && (
+        <div className="flex justify-end print:hidden mb-2">
           <button onClick={handlePrint} className="btn-outline text-xs gap-1.5 cursor-pointer">
             <Printer className="w-4 h-4" />
             <span>Print Statement</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Selector Filters Card */}
       <div className="card bg-white p-5 border border-[#e2e8e6] shadow-xs print:hidden">

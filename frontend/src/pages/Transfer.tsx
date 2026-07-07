@@ -118,13 +118,7 @@ export const Transfer: React.FC = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-3">
-      <div className="page-header pb-1">
-        <div>
-          <h2 className="page-title text-lg font-bold">Internal Fund Transfer</h2>
-          <p className="page-subtitle text-xs">Move money between bank accounts and cash vaults</p>
-        </div>
-      </div>
+    <div className="max-w-4xl mx-auto space-y-3">
 
       {errorMessage && (
         <div className="p-3 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-xs border border-red-100 animate-in fade-in duration-200">
