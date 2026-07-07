@@ -67,11 +67,18 @@ export const Dashboard: React.FC = () => {
             <ArrowUpRight className="w-5 h-5 text-white" />
             <span>Send Money</span>
           </button>
+          <button 
+            onClick={() => navigate('/expense')}
+            className="flex-1 text-base font-bold flex items-center justify-center gap-3 cursor-pointer shadow-md rounded-2xl py-3 bg-amber-800 text-white hover:bg-amber-950 transition-colors"
+          >
+            <Wallet className="w-5 h-5 text-amber-300" />
+            <span>Expenses</span>
+          </button>
         </div>
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard 
           title="Today's Receipts" 
           value={fmt(kpis.today_receipts)} 
@@ -89,6 +96,15 @@ export const Dashboard: React.FC = () => {
           valueClass="text-red-600 font-extrabold"
           iconBgClass="bg-red-50"
           iconClass="text-red-600 font-bold"
+        />
+        <StatCard 
+          title="Today's Expenses" 
+          value={fmt(kpis.today_expenses)} 
+          icon={Wallet} 
+          description="Totally Spent (Expenses)" 
+          valueClass="text-amber-600 font-extrabold"
+          iconBgClass="bg-amber-50"
+          iconClass="text-amber-600 font-bold"
         />
         <StatCard 
           title="Cash Balance" 
@@ -120,6 +136,10 @@ export const Dashboard: React.FC = () => {
                   <stop offset="5%" stopColor="#dc2626" stopOpacity={0.2}/>
                   <stop offset="95%" stopColor="#dc2626" stopOpacity={0}/>
                 </linearGradient>
+                <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#d97706" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="#d97706" stopOpacity={0}/>
+                </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f4" />
               <XAxis dataKey="month" stroke="#8aa89f" fontSize={11} />
@@ -127,6 +147,7 @@ export const Dashboard: React.FC = () => {
               <Tooltip />
               <Area type="monotone" dataKey="receipts" name="Receipts" stroke="#00a86b" fillOpacity={1} fill="url(#colorReceipts)" strokeWidth={2} />
               <Area type="monotone" dataKey="payments" name="Payments" stroke="#dc2626" fillOpacity={1} fill="url(#colorPayments)" strokeWidth={2} />
+              <Area type="monotone" dataKey="expenses" name="Expenses" stroke="#d97706" fillOpacity={1} fill="url(#colorExpenses)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </div>

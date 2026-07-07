@@ -5,6 +5,7 @@ import { Login } from '../pages/Login';
 import { Dashboard } from '../pages/Dashboard';
 import { Receive } from '../pages/Receive';
 import { Pay } from '../pages/Pay';
+import { Expense } from '../pages/Expense';
 import { Transfer } from '../pages/Transfer';
 import { Daybook } from '../pages/Daybook';
 import { Ledger } from '../pages/Ledger';
@@ -24,6 +25,7 @@ export const AppRouter: React.FC = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/receive" element={<Receive />} />
           <Route path="/pay" element={<Pay />} />
+          <Route path="/expense" element={<Expense />} />
           <Route path="/transfer" element={<Transfer />} />
           <Route path="/daybook" element={<Daybook />} />
           <Route path="/ledger" element={<Ledger />} />

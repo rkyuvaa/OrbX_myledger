@@ -224,6 +224,61 @@ class PaymentOut(BaseModel):
 
 
 # ─────────────────────────────────────────────
+# EXPENSE VOUCHER
+# ─────────────────────────────────────────────
+
+class ExpenseCreate(BaseModel):
+    date: date
+    branch_id: Optional[str] = None
+    paid_to: str
+    amount: float
+    payment_mode: str  # bank | cash
+    bank_account_id: Optional[str] = None
+    cash_account_id: Optional[str] = None
+    reference_number: Optional[str] = None
+    narration: Optional[str] = None
+
+    @field_validator("amount")
+    @classmethod
+    def amount_positive(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("Amount must be greater than zero")
+        return v
+
+    @field_validator("branch_id", "bank_account_id", "cash_account_id", "reference_number", "narration", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, v: Any) -> Any:
+        if v == "":
+            return None
+        return v
+
+
+class ExpenseOut(BaseModel):
+    id: str
+    voucher_number: str
+    date: date
+    branch_id: Optional[str]
+    branch_name: Optional[str] = None
+    paid_to: str
+    amount: float
+    payment_mode: str
+    bank_account_id: Optional[str]
+    bank_account_name: Optional[str] = None
+    cash_account_id: Optional[str]
+    cash_account_name: Optional[str] = None
+    reference_number: Optional[str]
+    narration: Optional[str]
+    is_reversed: bool
+    reversal_of_id: Optional[str]
+    posted_by_id: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+
+# ─────────────────────────────────────────────
 # FUND TRANSFER
 # ─────────────────────────────────────────────
 
@@ -398,6 +453,7 @@ class DashboardKPIOut(BaseModel):
     total_cash_balance: float
     today_receipts: float
     today_payments: float
+    today_expenses: float
     branch_collection_today: float
     account_tiles: List[BalanceTileOut]
 
@@ -406,6 +462,7 @@ class MonthlyFlowPoint(BaseModel):
     month: str
     receipts: float
     payments: float
+    expenses: float
 
 
 class BranchCollectionPoint(BaseModel):

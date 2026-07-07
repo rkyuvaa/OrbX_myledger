@@ -64,6 +64,7 @@ export const VoucherPrefixes: React.FC = () => {
   const getFriendlyVoucherName = (type: string) => {
     if (type === 'RCV') return 'Receipt Voucher';
     if (type === 'PAY') return 'Payment Voucher';
+    if (type === 'EXP') return 'Expense Voucher';
     if (type === 'TRF') return 'Transfer Voucher';
     return type;
   };

@@ -129,6 +129,45 @@ class PaymentVoucher(Base):
 
 
 # ─────────────────────────────────────────────
+# EXPENSE VOUCHER
+# ─────────────────────────────────────────────
+
+class ExpenseVoucher(Base):
+    __tablename__ = "expense_vouchers"
+
+    voucher_number: Mapped[str] = mapped_column(String(30), unique=True, index=True, nullable=False)
+    date: Mapped[date] = mapped_column(Date, nullable=False)
+    branch_id: Mapped[Optional[str]] = mapped_column(
+        UUID(as_uuid=False), ForeignKey("branches.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    paid_to: Mapped[str] = mapped_column(String(255), nullable=False)
+    amount: Mapped[float] = mapped_column(Float, nullable=False)
+    payment_mode: Mapped[str] = mapped_column(String(20), nullable=False)  # bank, cash
+    bank_account_id: Mapped[Optional[str]] = mapped_column(
+        UUID(as_uuid=False), ForeignKey("bank_accounts.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    cash_account_id: Mapped[Optional[str]] = mapped_column(
+        UUID(as_uuid=False), ForeignKey("cash_accounts.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    reference_number: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    narration: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    is_reversed: Mapped[bool] = mapped_column(Boolean, default=False)
+    reversal_of_id: Mapped[Optional[str]] = mapped_column(
+        UUID(as_uuid=False), ForeignKey("expense_vouchers.id", ondelete="SET NULL"), nullable=True
+    )
+    posted_by_id: Mapped[Optional[str]] = mapped_column(
+        UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+
+    # Relationships
+    branch: Mapped[Optional["Branch"]] = relationship("Branch", foreign_keys=[branch_id])
+    bank_account: Mapped[Optional["BankAccount"]] = relationship("BankAccount", foreign_keys=[bank_account_id])
+    cash_account: Mapped[Optional["CashAccount"]] = relationship("CashAccount", foreign_keys=[cash_account_id])
+    posted_by: Mapped[Optional["User"]] = relationship("User", foreign_keys=[posted_by_id])
+
+
+
+# ─────────────────────────────────────────────
 # FUND TRANSFER
 # ─────────────────────────────────────────────
 

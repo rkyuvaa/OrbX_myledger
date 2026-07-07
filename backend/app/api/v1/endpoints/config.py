@@ -60,7 +60,7 @@ async def list_voucher_sequences(
     fy_start, fy_end = get_current_fy()
     
     # Ensure default sequences exist for current FY
-    for v_type in ["RCV", "PAY", "TRF"]:
+    for v_type in ["RCV", "PAY", "TRF", "EXP"]:
         result = await db.execute(
             select(VoucherSequence).where(
                 VoucherSequence.voucher_type == v_type,

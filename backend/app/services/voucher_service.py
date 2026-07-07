@@ -11,6 +11,7 @@ VOUCHER_TYPES = {
     "RCV": "Receipt",
     "PAY": "Payment",
     "TRF": "Transfer",
+    "EXP": "Expense",
 }
 
 

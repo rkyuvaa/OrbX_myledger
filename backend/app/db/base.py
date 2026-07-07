@@ -8,6 +8,7 @@ from app.models.ledger import (  # noqa
     Branch,
     ReceiptVoucher,
     PaymentVoucher,
+    ExpenseVoucher,
     FundTransfer,
     DaybookEntry,
     LedgerEntry,

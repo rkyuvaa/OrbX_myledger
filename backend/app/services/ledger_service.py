@@ -6,12 +6,12 @@ from fastapi import HTTPException, status
 
 from app.models.ledger import (
     BankAccount, CashAccount, Branch,
-    ReceiptVoucher, PaymentVoucher, FundTransfer,
+    ReceiptVoucher, PaymentVoucher, ExpenseVoucher, FundTransfer,
     DaybookEntry, LedgerEntry, AuditLog,
 )
 from app.models.company import CompanyProfile
 from app.schemas.ledger import (
-    ReceiptCreate, PaymentCreate, FundTransferCreate,
+    ReceiptCreate, PaymentCreate, ExpenseCreate, FundTransferCreate,
     DashboardSummaryOut, DashboardKPIOut, BalanceTileOut,
     MonthlyFlowPoint, BranchCollectionPoint,
 )
@@ -371,6 +371,118 @@ async def create_payment(
 
 
 # ─────────────────────────────────────────────
+# EXPENSE TRANSACTION
+# ─────────────────────────────────────────────
+
+async def create_expense(
+    db: AsyncSession,
+    data: ExpenseCreate,
+    posted_by_id: str,
+) -> ExpenseVoucher:
+    # Validate
+    if data.payment_mode == "bank":
+        if not data.bank_account_id:
+            raise HTTPException(status_code=422, detail="Bank account is required for bank payment mode")
+
+    if data.payment_mode == "cash" and not data.cash_account_id:
+        raise HTTPException(status_code=422, detail="Cash account is required for cash payment mode")
+
+    # Check sufficient balance
+    if data.payment_mode == "bank":
+        bank = await _get_bank(db, data.bank_account_id)
+        if not bank.is_overdraft_allowed and bank.current_balance < data.amount:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Insufficient balance in {bank.name}. Available: ₹{bank.current_balance:.2f}",
+            )
+    else:
+        cash = await _get_cash(db, data.cash_account_id)
+        if cash.current_balance < data.amount:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Insufficient cash balance. Available: ₹{cash.current_balance:.2f}",
+            )
+
+    # Generate voucher number
+    voucher_number = await get_next_voucher_number(db, "EXP", data.date)
+
+    voucher = ExpenseVoucher(
+        voucher_number=voucher_number,
+        date=data.date,
+        branch_id=data.branch_id,
+        paid_to=data.paid_to,
+        amount=data.amount,
+        payment_mode=data.payment_mode,
+        bank_account_id=data.bank_account_id if data.payment_mode == "bank" else None,
+        cash_account_id=data.cash_account_id if data.payment_mode == "cash" else None,
+        reference_number=data.reference_number,
+        narration=data.narration,
+        posted_by_id=posted_by_id,
+    )
+    db.add(voucher)
+    await db.flush()
+
+    # Update balance (debit)
+    particulars = f"Expense to {data.paid_to}"
+    if data.payment_mode == "bank":
+        bank = await _get_bank(db, data.bank_account_id)
+        bank.current_balance -= data.amount
+        account_type = "bank"
+        account_id = data.bank_account_id
+    else:
+        cash = await _get_cash(db, data.cash_account_id)
+        cash.current_balance -= data.amount
+        account_type = "cash"
+        account_id = data.cash_account_id
+
+    # Daybook entry
+    await _post_daybook(
+        db=db,
+        date=data.date,
+        voucher_type="EXP",
+        voucher_id=voucher.id,
+        voucher_number=voucher_number,
+        branch_id=data.branch_id,
+        particulars=particulars,
+        debit=data.amount,
+        credit=0.0,
+        payment_mode=data.payment_mode,
+        reference_number=data.reference_number,
+        narration=data.narration,
+        account_type=account_type,
+        account_id=account_id,
+    )
+
+    # Ledger entry
+    await _post_ledger(
+        db=db,
+        date=data.date,
+        account_type=account_type,
+        account_id=account_id,
+        voucher_type="EXP",
+        voucher_id=voucher.id,
+        voucher_number=voucher_number,
+        debit=data.amount,
+        credit=0.0,
+        description=particulars,
+    )
+
+    db.add(AuditLog(
+        user_id=posted_by_id,
+        action="CREATE",
+        entity_type="ExpenseVoucher",
+        entity_id=voucher.id,
+        description=f"Created expense {voucher_number} for ₹{data.amount:.2f}",
+        new_values={"voucher_number": voucher_number, "amount": data.amount},
+    ))
+
+    await db.commit()
+    await db.refresh(voucher)
+    return voucher
+
+
+
+# ─────────────────────────────────────────────
 # FUND TRANSFER
 # ─────────────────────────────────────────────
 
@@ -669,6 +781,79 @@ async def reverse_payment(
     return reversal
 
 
+async def reverse_expense(
+    db: AsyncSession,
+    expense_id: str,
+    posted_by_id: str,
+    reason: str = "Reversal",
+) -> ExpenseVoucher:
+    result = await db.execute(select(ExpenseVoucher).where(ExpenseVoucher.id == expense_id))
+    original = result.scalar_one_or_none()
+    if not original:
+        raise HTTPException(status_code=404, detail="Expense voucher not found")
+    if original.is_reversed:
+        raise HTTPException(status_code=422, detail="This voucher is already reversed")
+
+    rev_voucher_number = await get_next_voucher_number(db, "EXP", date.today())
+    reversal = ExpenseVoucher(
+        voucher_number=rev_voucher_number,
+        date=date.today(),
+        branch_id=original.branch_id,
+        paid_to=original.paid_to,
+        amount=original.amount,
+        payment_mode=original.payment_mode,
+        bank_account_id=original.bank_account_id,
+        cash_account_id=original.cash_account_id,
+        reference_number=original.reference_number,
+        narration=f"REVERSAL of {original.voucher_number}: {reason}",
+        is_reversed=False,
+        reversal_of_id=original.id,
+        posted_by_id=posted_by_id,
+    )
+    db.add(reversal)
+    original.is_reversed = True
+
+    # Reverse the balance (credit back)
+    if original.payment_mode == "bank":
+        bank = await _get_bank(db, original.bank_account_id)
+        bank.current_balance += original.amount
+        account_type = "bank"
+        account_id = original.bank_account_id
+    else:
+        cash = await _get_cash(db, original.cash_account_id)
+        cash.current_balance += original.amount
+        account_type = "cash"
+        account_id = original.cash_account_id
+
+    await db.flush()
+    particulars = f"REVERSAL: Expense to {original.paid_to}"
+    await _post_daybook(
+        db=db, date=date.today(), voucher_type="EXP", voucher_id=reversal.id,
+        voucher_number=rev_voucher_number, branch_id=original.branch_id,
+        particulars=particulars, debit=0.0, credit=original.amount,
+        payment_mode=original.payment_mode, reference_number=original.reference_number,
+        narration=reversal.narration, account_type=account_type, account_id=account_id,
+    )
+    await _post_ledger(
+        db=db, date=date.today(), account_type=account_type, account_id=account_id,
+        voucher_type="EXP", voucher_id=reversal.id, voucher_number=rev_voucher_number,
+        debit=0.0, credit=original.amount, description=particulars,
+    )
+
+    db.add(AuditLog(
+        user_id=posted_by_id,
+        action="REVERSE",
+        entity_type="ExpenseVoucher",
+        entity_id=original.id,
+        description=f"Reversed expense {original.voucher_number}. Reversal: {rev_voucher_number}",
+    ))
+
+    await db.commit()
+    await db.refresh(reversal)
+    return reversal
+
+
+
 # ─────────────────────────────────────────────
 # DASHBOARD SUMMARY
 # ─────────────────────────────────────────────
@@ -712,6 +897,13 @@ async def get_dashboard_summary(db: AsyncSession) -> DashboardSummaryOut:
     )
     today_payments = float(today_pay_result.scalar())
 
+    # Today's expenses
+    today_exp_result = await db.execute(
+        select(func.coalesce(func.sum(ExpenseVoucher.amount), 0.0))
+        .where(ExpenseVoucher.date == today, ExpenseVoucher.is_reversed == False)
+    )
+    today_expenses = float(today_exp_result.scalar())
+
     # Branch collection today
     branch_today_result = await db.execute(
         select(func.coalesce(func.sum(ReceiptVoucher.amount), 0.0))
@@ -728,6 +920,7 @@ async def get_dashboard_summary(db: AsyncSession) -> DashboardSummaryOut:
         total_cash_balance=total_cash_balance,
         today_receipts=today_receipts,
         today_payments=today_payments,
+        today_expenses=today_expenses,
         branch_collection_today=branch_collection_today,
         account_tiles=account_tiles,
     )
@@ -759,10 +952,19 @@ async def get_dashboard_summary(db: AsyncSession) -> DashboardSummaryOut:
                 PaymentVoucher.is_reversed == False,
             )
         )
+        exp_result = await db.execute(
+            select(func.coalesce(func.sum(ExpenseVoucher.amount), 0.0))
+            .where(
+                ExpenseVoucher.date >= m_start,
+                ExpenseVoucher.date <= m_end,
+                ExpenseVoucher.is_reversed == False,
+            )
+        )
         monthly_flow.append(MonthlyFlowPoint(
             month=m_date.strftime("%b %Y"),
             receipts=float(rcv_result.scalar()),
             payments=float(pay_result.scalar()),
+            expenses=float(exp_result.scalar()),
         ))
 
     # Top branch collections (current month)
@@ -813,6 +1015,23 @@ async def get_dashboard_summary(db: AsyncSession) -> DashboardSummaryOut:
         recent.append({
             "id": v.id,
             "type": "Payment",
+            "voucher_number": v.voucher_number,
+            "party": v.paid_to,
+            "amount": v.amount,
+            "date": v.date.isoformat(),
+            "payment_mode": v.payment_mode,
+        })
+
+    exp_rows = await db.execute(
+        select(ExpenseVoucher)
+        .where(ExpenseVoucher.is_reversed == False)
+        .order_by(ExpenseVoucher.date.desc(), ExpenseVoucher.created_at.desc())
+        .limit(5)
+    )
+    for v in exp_rows.scalars().all():
+        recent.append({
+            "id": v.id,
+            "type": "Expense",
             "voucher_number": v.voucher_number,
             "party": v.paid_to,
             "amount": v.amount,
@@ -1108,6 +1327,140 @@ async def update_payment(
     await db.commit()
     await db.refresh(voucher)
     return voucher
+
+
+async def update_expense(
+    db: AsyncSession,
+    expense_id: str,
+    data: ExpenseCreate,
+    posted_by_id: str,
+) -> ExpenseVoucher:
+    # 1. Fetch existing voucher
+    result = await db.execute(select(ExpenseVoucher).where(ExpenseVoucher.id == expense_id))
+    voucher = result.scalar_one_or_none()
+    if not voucher:
+        raise HTTPException(status_code=404, detail="Expense voucher not found")
+    if voucher.is_reversed:
+        raise HTTPException(status_code=400, detail="Cannot edit a reversed voucher")
+
+    old_payment_mode = voucher.payment_mode
+    old_amount = voucher.amount
+    old_bank_id = voucher.bank_account_id
+    old_cash_id = voucher.cash_account_id
+
+    # 2. Validate input
+    if data.payment_mode == "bank" and not data.bank_account_id:
+        raise HTTPException(status_code=422, detail="Bank account is required for bank payment mode")
+    if data.payment_mode == "cash" and not data.cash_account_id:
+        raise HTTPException(status_code=422, detail="Cash account is required for cash payment mode")
+
+    # 3. Revert old balance impact
+    if old_payment_mode == "bank" and old_bank_id:
+        old_bank = await _get_bank(db, old_bank_id)
+        old_bank.current_balance += old_amount
+    elif old_payment_mode == "cash" and old_cash_id:
+        old_cash = await _get_cash(db, old_cash_id)
+        old_cash.current_balance += old_amount
+
+    # 4. Check sufficient balance and apply new impact
+    if data.payment_mode == "bank":
+        new_bank = await _get_bank(db, data.bank_account_id)
+        if not new_bank.is_overdraft_allowed and new_bank.current_balance < data.amount:
+            # Revert the balance changes we made in step 3
+            if old_payment_mode == "bank" and old_bank_id:
+                old_bank.current_balance -= old_amount
+            elif old_payment_mode == "cash" and old_cash_id:
+                old_cash.current_balance -= old_amount
+            raise HTTPException(
+                status_code=422,
+                detail=f"Insufficient balance in {new_bank.name}. Available: ₹{new_bank.current_balance:.2f}",
+            )
+        new_bank.current_balance -= data.amount
+        account_type = "bank"
+        account_id = data.bank_account_id
+    else:
+        new_cash = await _get_cash(db, data.cash_account_id)
+        if new_cash.current_balance < data.amount:
+            # Revert the balance changes we made in step 3
+            if old_payment_mode == "bank" and old_bank_id:
+                old_bank.current_balance -= old_amount
+            elif old_payment_mode == "cash" and old_cash_id:
+                old_cash.current_balance -= old_amount
+            raise HTTPException(
+                status_code=422,
+                detail=f"Insufficient cash balance. Available: ₹{new_cash.current_balance:.2f}",
+            )
+        new_cash.current_balance -= data.amount
+        account_type = "cash"
+        account_id = data.cash_account_id
+
+    # 5. Delete old DaybookEntry and LedgerEntry
+    await db.execute(delete(DaybookEntry).where(DaybookEntry.voucher_id == voucher.id, DaybookEntry.voucher_type == "EXP"))
+    await db.execute(delete(LedgerEntry).where(LedgerEntry.voucher_id == voucher.id, LedgerEntry.voucher_type == "EXP"))
+
+    # 6. Update voucher fields
+    voucher.date = data.date
+    voucher.branch_id = data.branch_id
+    voucher.paid_to = data.paid_to
+    voucher.amount = data.amount
+    voucher.payment_mode = data.payment_mode
+    voucher.bank_account_id = data.bank_account_id if data.payment_mode == "bank" else None
+    voucher.cash_account_id = data.cash_account_id if data.payment_mode == "cash" else None
+    voucher.reference_number = data.reference_number
+    voucher.narration = data.narration
+
+    # 7. Post new DaybookEntry
+    particulars = f"Expense to {data.paid_to}"
+    await _post_daybook(
+        db=db,
+        date=data.date,
+        voucher_type="EXP",
+        voucher_id=voucher.id,
+        voucher_number=voucher.voucher_number,
+        branch_id=data.branch_id,
+        particulars=particulars,
+        debit=data.amount,
+        credit=0.0,
+        payment_mode=data.payment_mode,
+        reference_number=data.reference_number,
+        narration=data.narration,
+        account_type=account_type,
+        account_id=account_id,
+    )
+
+    # 8. Post new LedgerEntry
+    await _post_ledger(
+        db=db,
+        date=data.date,
+        account_type=account_type,
+        account_id=account_id,
+        voucher_type="EXP",
+        voucher_id=voucher.id,
+        voucher_number=voucher.voucher_number,
+        debit=data.amount,
+        credit=0.0,
+        description=particulars,
+    )
+
+    # 9. Recalculate ledger balances for affected accounts
+    await recalculate_ledger_balances(db, old_payment_mode, old_bank_id if old_payment_mode == "bank" else old_cash_id)
+    if (old_payment_mode != data.payment_mode) or (old_payment_mode == "bank" and old_bank_id != data.bank_account_id) or (old_payment_mode == "cash" and old_cash_id != data.cash_account_id):
+        await recalculate_ledger_balances(db, account_type, account_id)
+
+    # 10. Audit log
+    db.add(AuditLog(
+        user_id=posted_by_id,
+        action="UPDATE",
+        entity_type="ExpenseVoucher",
+        entity_id=voucher.id,
+        description=f"Updated expense {voucher.voucher_number} to ₹{data.amount:.2f}",
+        new_values={"voucher_number": voucher.voucher_number, "amount": data.amount},
+    ))
+
+    await db.commit()
+    await db.refresh(voucher)
+    return voucher
+
 
 
 async def update_fund_transfer(
