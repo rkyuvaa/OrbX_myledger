@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Landmark, Wallet, ArrowLeft, MinusCircle, X } from 'lucide-react';
+import { AlertCircle, Landmark, Wallet, ArrowLeft, MinusCircle, X, User, Building } from 'lucide-react';
 import api from '../lib/api';
 import { useToastStore } from '../store/toastStore';
 
@@ -12,6 +12,7 @@ export const Expense: React.FC = () => {
   
   // Wizard Step State (1-8 for inputs, 9 for summary)
   const [step, setStep] = useState(1);
+  const [expenseCategory, setExpenseCategory] = useState<'personal' | 'branch' | null>(null);
   
   // Form Values
   const [valDate, setValDate] = useState(new Date().toISOString().substring(0, 10));
@@ -147,7 +148,7 @@ export const Expense: React.FC = () => {
     const companyEmail = companyData?.email ? `Email: ${companyData.email}` : '';
     const companyAddress = companyData?.address || '';
 
-    const branchName = valBranchId ? branches.find((b: any) => b.id === valBranchId)?.name || valBranchId : 'Main Branch';
+    const branchName = expenseCategory === 'personal' ? 'Personal' : (valBranchId ? branches.find((b: any) => b.id === valBranchId)?.name || valBranchId : 'Main Branch');
     const accountName = valPaymentMode === 'bank' 
       ? bankAccounts.find((b: any) => b.id === valBankAccountId)?.name 
       : cashAccounts.find((c: any) => c.id === valCashAccountId)?.name;
@@ -535,23 +536,43 @@ export const Expense: React.FC = () => {
                   value={valDate} 
                   onChange={(e) => {
                     setValDate(e.target.value);
-                    setTimeout(() => setStep(2), 250);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      setStep(2);
-                    }
                   }}
                   className="input text-base font-semibold py-2.5"
                 />
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="w-full btn-primary py-2.5 font-bold text-sm cursor-pointer shadow-sm"
-                >
-                  Set Date
-                </button>
+                
+                <div className="grid grid-cols-2 gap-4 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExpenseCategory('personal');
+                      setValBranchId('');
+                      setStep(3);
+                    }}
+                    className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                      expenseCategory === 'personal'
+                        ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
+                        : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
+                    }`}
+                  >
+                    <User className="w-6 h-6" />
+                    <span className="font-bold text-xs">Personal</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExpenseCategory('branch');
+                      setStep(2);
+                    }}
+                    className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                      expenseCategory === 'branch'
+                        ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
+                        : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
+                    }`}
+                  >
+                    <Building className="w-6 h-6" />
+                    <span className="font-bold text-xs">Branch</span>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -843,7 +864,7 @@ export const Expense: React.FC = () => {
                   <div className="flex justify-between border-b border-[#e2e8e6]/80 pb-2">
                     <span className="text-[#8aa89f] font-semibold">Branch</span>
                     <span className="font-bold text-[#0d1f1a]">
-                      {branches.find((b: any) => b.id === valBranchId)?.name || 'Main Branch'}
+                      {expenseCategory === 'personal' ? 'Personal' : (branches.find((b: any) => b.id === valBranchId)?.name || 'Main Branch')}
                     </span>
                   </div>
                   <div className="flex justify-between border-b border-[#e2e8e6]/80 pb-2">
@@ -899,7 +920,13 @@ export const Expense: React.FC = () => {
             <button
               type="button"
               disabled={step === 1}
-              onClick={() => setStep(prev => prev - 1)}
+              onClick={() => {
+                if (step === 3 && expenseCategory === 'personal') {
+                  setStep(1);
+                } else {
+                  setStep(prev => prev - 1);
+                }
+              }}
               className="btn-ghost py-1.5 px-3 rounded-lg text-[#4a6b62] hover:bg-[#e2e8e6] hover:text-[#0d1f1a] disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer font-bold"
             >
               Back
@@ -930,6 +957,7 @@ export const Expense: React.FC = () => {
               <button
                 type="button"
                 disabled={
+                  step === 1 || 
                   step === 9 || 
                   (step === 2 && !valBranchId) || 
                   (step === 3 && !valPaidTo.trim()) || 

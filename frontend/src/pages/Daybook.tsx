@@ -240,7 +240,7 @@ export const Daybook: React.FC = () => {
       const companyEmail = companyData?.email ? `Email: ${companyData.email}` : '';
       const companyAddress = companyData?.address || '';
 
-      const branchName = voucher.branch_name || 'Main Branch';
+      const branchName = (voucher.voucher_number?.startsWith('EXP') && !voucher.branch_id) ? 'Personal' : (voucher.branch_name || 'Main Branch');
       const accountName = voucher.payment_mode === 'bank' 
         ? voucher.bank_account_name 
         : voucher.cash_account_name;
@@ -1204,7 +1204,7 @@ export const Daybook: React.FC = () => {
                       <td>{entry.date}</td>
                       <td>
                         <span className="text-xs font-semibold text-[#4a6b62]">
-                          {entry.branch_name || 'Corp / HQ'}
+                          {entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ')}
                         </span>
                       </td>
                       <td>
