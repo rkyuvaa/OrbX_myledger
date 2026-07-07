@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Landmark, Wallet, ArrowLeft, MinusCircle, X, User, Building } from 'lucide-react';
+import { AlertCircle, Landmark, Wallet, ArrowLeft, MinusCircle, X, User, Building, Receipt } from 'lucide-react';
 import api from '../lib/api';
 import { useToastStore } from '../store/toastStore';
 
@@ -13,6 +13,7 @@ export const Expense: React.FC = () => {
   // Wizard Step State (1-8 for inputs, 9 for summary)
   const [step, setStep] = useState(1);
   const [expenseCategory, setExpenseCategory] = useState<'personal' | 'branch' | null>(null);
+  const [isCheque, setIsCheque] = useState(false);
   
   // Form Values
   const [valDate, setValDate] = useState(new Date().toISOString().substring(0, 10));
@@ -148,10 +149,11 @@ export const Expense: React.FC = () => {
     const companyEmail = companyData?.email ? `Email: ${companyData.email}` : '';
     const companyAddress = companyData?.address || '';
 
+    const isChequeVoucher = voucher.reference_number?.toLowerCase().includes('cheque');
     const branchName = expenseCategory === 'personal' ? 'Personal' : (valBranchId ? branches.find((b: any) => b.id === valBranchId)?.name || valBranchId : 'Main Branch');
-    const accountName = valPaymentMode === 'bank' 
-      ? bankAccounts.find((b: any) => b.id === valBankAccountId)?.name 
-      : cashAccounts.find((c: any) => c.id === valCashAccountId)?.name;
+    const accountName = voucher.payment_mode === 'bank' 
+      ? bankAccounts.find((b: any) => b.id === voucher.bank_account_id)?.name 
+      : cashAccounts.find((c: any) => c.id === voucher.cash_account_id)?.name;
 
     const formattedAmount = new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -311,8 +313,8 @@ export const Expense: React.FC = () => {
                   <span class="detail-value">${branchName}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="detail-label">${valPaymentMode === 'bank' ? 'Bank Account:' : 'Cash Account:'}</span>
-                  <span class="detail-value">${accountName}</span>
+                  <span class="detail-label">${voucher.payment_mode === 'bank' ? (isChequeVoucher ? 'Cheque Bank:' : 'Bank Account:') : 'Cash Account:'}</span>
+                  <span class="detail-value">${accountName || 'N/A'}</span>
                 </div>
                 <div class="detail-item" style="grid-column: span 2">
                   <span class="detail-label">Reference No:</span>
@@ -408,6 +410,11 @@ export const Expense: React.FC = () => {
       return;
     }
 
+    const refNum = valReferenceNumber.trim();
+    const finalReferenceNumber = isCheque 
+      ? (refNum.toLowerCase().startsWith('cheque') ? refNum : `Cheque No: ${refNum}`)
+      : (refNum || undefined);
+
     const payload = {
       date: valDate,
       branch_id: valBranchId,
@@ -416,7 +423,7 @@ export const Expense: React.FC = () => {
       payment_mode: valPaymentMode,
       bank_account_id: valPaymentMode === 'bank' ? valBankAccountId : undefined,
       cash_account_id: valPaymentMode === 'cash' ? valCashAccountId : undefined,
-      reference_number: valReferenceNumber || undefined,
+      reference_number: finalReferenceNumber,
       narration: valNarration || undefined,
     };
 
@@ -435,7 +442,7 @@ export const Expense: React.FC = () => {
   const fmt = (val: number) => 
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
-  const isOptionalStep = step === 7 || step === 8;
+  const isOptionalStep = (step === 7 && !isCheque) || step === 8;
 
   // Simple number to words function for print preview
   function numberToWords(num: number): string {
@@ -689,34 +696,51 @@ export const Expense: React.FC = () => {
             {step === 5 && (
               <div className="space-y-4">
                 <h3 className="text-base font-bold text-[#0d1f1a]">Choose Payment Mode</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => {
                       setValPaymentMode('bank');
+                      setIsCheque(false);
                       setStep(6);
                     }}
-                    className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
-                      valPaymentMode === 'bank'
+                    className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      valPaymentMode === 'bank' && !isCheque
                         ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
                         : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
                     }`}
                   >
-                    <Landmark className="w-8 h-8" />
-                    <span className="font-bold text-xs">Bank Outflow</span>
+                    <Landmark className="w-6 h-6" />
+                    <span className="font-bold text-[10px] text-center">Bank Transfer</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setValPaymentMode('bank');
+                      setIsCheque(true);
+                      setStep(6);
+                    }}
+                    className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      valPaymentMode === 'bank' && isCheque
+                        ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
+                        : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
+                    }`}
+                  >
+                    <Receipt className="w-6 h-6 text-amber-600" />
+                    <span className="font-bold text-[10px] text-center">Cheque</span>
                   </button>
                   <button
                     onClick={() => {
                       setValPaymentMode('cash');
+                      setIsCheque(false);
                       setStep(6);
                     }}
-                    className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                    className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       valPaymentMode === 'cash'
                         ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
                         : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
                     }`}
                   >
-                    <Wallet className="w-8 h-8" />
-                    <span className="font-bold text-xs">Cash Payment</span>
+                    <Wallet className="w-6 h-6" />
+                    <span className="font-bold text-[10px] text-center">Cash Payment</span>
                   </button>
                 </div>
               </div>
@@ -776,16 +800,17 @@ export const Expense: React.FC = () => {
             {step === 7 && (
               <div className="space-y-4 relative">
                 <h3 className="text-base font-bold text-[#0d1f1a]">
-                  Reference Number <span className="text-[10px] font-semibold text-[#8aa89f]">(Optional)</span>
+                  {isCheque ? 'Cheque Number' : <>Reference Number <span className="text-[10px] font-semibold text-[#8aa89f]">(Optional)</span></>}
                 </h3>
                 <input
                   type="text"
-                  placeholder="Transaction ID, Cheque, or Transfer reference ID..."
+                  placeholder={isCheque ? "Enter 6-digit cheque number..." : "Transaction ID, Cheque, or Transfer reference ID..."}
                   value={valReferenceNumber}
                   onChange={(e) => handleReferenceChange(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
+                      if (isCheque && !valReferenceNumber.trim()) return;
                       saveToHistory('myledger_exp_references', valReferenceNumber);
                       setRefSuggestions([]);
                       setStep(8);
@@ -875,13 +900,13 @@ export const Expense: React.FC = () => {
                     <span className="text-[#8aa89f] font-semibold">Source Account</span>
                     <span className="font-bold text-[#0d1f1a]">
                       {valPaymentMode === 'bank' 
-                        ? bankAccounts.find((b: any) => b.id === valBankAccountId)?.name 
+                        ? `${bankAccounts.find((b: any) => b.id === valBankAccountId)?.name || ''} (${isCheque ? 'Cheque' : 'Bank Transfer'})` 
                         : cashAccounts.find((c: any) => c.id === valCashAccountId)?.name}
                     </span>
                   </div>
                   {valReferenceNumber && (
                     <div className="flex justify-between border-b border-[#e2e8e6]/80 pb-2">
-                      <span className="text-[#8aa89f] font-semibold">Reference #</span>
+                      <span className="text-[#8aa89f] font-semibold">{isCheque ? 'Cheque Number' : 'Reference #'}</span>
                       <span className="font-bold text-[#0d1f1a]">{valReferenceNumber}</span>
                     </div>
                   )}
@@ -963,7 +988,8 @@ export const Expense: React.FC = () => {
                   (step === 3 && !valPaidTo.trim()) || 
                   (step === 4 && Number(valAmount) <= 0) || 
                   (step === 6 && valPaymentMode === 'bank' && !valBankAccountId) || 
-                  (step === 6 && valPaymentMode === 'cash' && !valCashAccountId)
+                  (step === 6 && valPaymentMode === 'cash' && !valCashAccountId) ||
+                  (step === 7 && isCheque && !valReferenceNumber.trim())
                 }
                 onClick={() => setStep(prev => prev + 1)}
                 className="py-1.5 px-4 rounded-lg bg-[#023020] hover:bg-[#034a31] text-white font-bold disabled:opacity-40 disabled:hover:bg-[#023020] cursor-pointer"

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, CheckCircle2, Landmark, Wallet, Edit2, ArrowLeft, MinusCircle, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Landmark, Wallet, Edit2, ArrowLeft, MinusCircle, X, Receipt } from 'lucide-react';
 import api from '../lib/api';
 import { useToastStore } from '../store/toastStore';
 
@@ -12,6 +12,7 @@ export const Pay: React.FC = () => {
   
   // Wizard Step State (1-8 for inputs, 9 for summary)
   const [step, setStep] = useState(1);
+  const [isCheque, setIsCheque] = useState(false);
   
   // Form Values
   const [valDate, setValDate] = useState(new Date().toISOString().substring(0, 10));
@@ -147,10 +148,11 @@ export const Pay: React.FC = () => {
     const companyEmail = companyData?.email ? `Email: ${companyData.email}` : '';
     const companyAddress = companyData?.address || '';
 
+    const isChequeVoucher = voucher.reference_number?.toLowerCase().includes('cheque');
     const branchName = valBranchId ? branches.find((b: any) => b.id === valBranchId)?.name || valBranchId : 'Main Branch';
-    const accountName = valPaymentMode === 'bank' 
-      ? bankAccounts.find((b: any) => b.id === valBankAccountId)?.name 
-      : cashAccounts.find((c: any) => c.id === valCashAccountId)?.name;
+    const accountName = voucher.payment_mode === 'bank' 
+      ? bankAccounts.find((b: any) => b.id === voucher.bank_account_id)?.name 
+      : cashAccounts.find((c: any) => c.id === voucher.cash_account_id)?.name;
 
     const formattedAmount = new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -309,9 +311,9 @@ export const Pay: React.FC = () => {
                   <span class="detail-label">Branch Name:</span>
                   <span class="detail-value">${branchName}</span>
                 </div>
-                <div class="detail-item">
-                  <span class="detail-label">${valPaymentMode === 'bank' ? 'Bank Account:' : 'Cash Account:'}</span>
-                  <span class="detail-value">${accountName}</span>
+                 <div class="detail-item">
+                  <span class="detail-label">${voucher.payment_mode === 'bank' ? (isChequeVoucher ? 'Cheque Bank:' : 'Bank Account:') : 'Cash Account:'}</span>
+                  <span class="detail-value">${accountName || 'N/A'}</span>
                 </div>
                 <div class="detail-item" style="grid-column: span 2">
                   <span class="detail-label">Reference No:</span>
@@ -407,6 +409,11 @@ export const Pay: React.FC = () => {
       return;
     }
 
+    const refNum = valReferenceNumber.trim();
+    const finalReferenceNumber = isCheque 
+      ? (refNum.toLowerCase().startsWith('cheque') ? refNum : `Cheque No: ${refNum}`)
+      : (refNum || undefined);
+
     const payload = {
       date: valDate,
       branch_id: valBranchId,
@@ -415,7 +422,7 @@ export const Pay: React.FC = () => {
       payment_mode: valPaymentMode,
       bank_account_id: valPaymentMode === 'bank' ? valBankAccountId : undefined,
       cash_account_id: valPaymentMode === 'cash' ? valCashAccountId : undefined,
-      reference_number: valReferenceNumber || undefined,
+      reference_number: finalReferenceNumber,
       narration: valNarration || undefined,
     };
 
@@ -434,7 +441,7 @@ export const Pay: React.FC = () => {
   const fmt = (val: number) => 
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
-  const isOptionalStep = step === 7 || step === 8;
+  const isOptionalStep = (step === 7 && !isCheque) || step === 8;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 relative min-h-[520px]">
@@ -652,34 +659,51 @@ export const Pay: React.FC = () => {
             {step === 5 && (
               <div className="space-y-4">
                 <h3 className="text-base font-bold text-[#0d1f1a]">Choose Payment Mode</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => {
                       setValPaymentMode('bank');
+                      setIsCheque(false);
                       setStep(6);
                     }}
-                    className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
-                      valPaymentMode === 'bank'
+                    className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      valPaymentMode === 'bank' && !isCheque
                         ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
                         : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
                     }`}
                   >
-                    <Landmark className="w-8 h-8" />
-                    <span className="font-bold text-xs">Bank Outflow</span>
+                    <Landmark className="w-6 h-6" />
+                    <span className="font-bold text-[10px] text-center">Bank Transfer</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setValPaymentMode('bank');
+                      setIsCheque(true);
+                      setStep(6);
+                    }}
+                    className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      valPaymentMode === 'bank' && isCheque
+                        ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
+                        : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
+                    }`}
+                  >
+                    <Receipt className="w-6 h-6 text-amber-600" />
+                    <span className="font-bold text-[10px] text-center">Cheque</span>
                   </button>
                   <button
                     onClick={() => {
                       setValPaymentMode('cash');
+                      setIsCheque(false);
                       setStep(6);
                     }}
-                    className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                    className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       valPaymentMode === 'cash'
                         ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
                         : 'bg-[#f8fafb] hover:bg-[#f1f5f4] text-[#4a6b62] border-[#e2e8e6]'
                     }`}
                   >
-                    <Wallet className="w-8 h-8" />
-                    <span className="font-bold text-xs">Cash Payment</span>
+                    <Wallet className="w-6 h-6" />
+                    <span className="font-bold text-[10px] text-center">Cash Payment</span>
                   </button>
                 </div>
               </div>
@@ -739,16 +763,17 @@ export const Pay: React.FC = () => {
             {step === 7 && (
               <div className="space-y-4 relative">
                 <h3 className="text-base font-bold text-[#0d1f1a]">
-                  Reference Number <span className="text-[10px] font-semibold text-[#8aa89f]">(Optional)</span>
+                  {isCheque ? 'Cheque Number' : <>Reference Number <span className="text-[10px] font-semibold text-[#8aa89f]">(Optional)</span></>}
                 </h3>
                 <input
                   type="text"
-                  placeholder="Transaction ID, Cheque, or Transfer reference ID..."
+                  placeholder={isCheque ? "Enter 6-digit cheque number..." : "Transaction ID, Cheque, or Transfer reference ID..."}
                   value={valReferenceNumber}
                   onChange={(e) => handleReferenceChange(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
+                      if (isCheque && !valReferenceNumber.trim()) return;
                       saveToHistory('myledger_pay_references', valReferenceNumber);
                       setRefSuggestions([]);
                       setStep(8);
@@ -757,6 +782,20 @@ export const Pay: React.FC = () => {
                   autoFocus
                   className="input text-base font-semibold py-2.5"
                 />
+                {isCheque && (
+                  <button
+                    type="button"
+                    disabled={!valReferenceNumber.trim()}
+                    onClick={() => {
+                      saveToHistory('myledger_pay_references', valReferenceNumber);
+                      setRefSuggestions([]);
+                      setStep(8);
+                    }}
+                    className="w-full py-2.5 bg-[#023020] text-white rounded-xl font-bold text-sm hover:bg-[#034a31] disabled:opacity-50 cursor-pointer shadow-sm mt-3"
+                  >
+                    Confirm Cheque Number
+                  </button>
+                )}
                 {valReferenceNumber.trim().length > 0 && (
                   <div className="absolute left-0 right-0 z-55 bg-white border border-[#e2e8e6] rounded-xl shadow-lg mt-1 max-h-[145px] overflow-y-auto">
                     <button
@@ -872,9 +911,9 @@ export const Pay: React.FC = () => {
                   <div className="bg-[#f8fafb] p-2 rounded-xl border border-[#e2e8e6] flex justify-between items-center">
                     <div>
                       <span className="text-[9px] text-[#8aa89f] font-bold block">MODE / ACCOUNT</span>
-                      <span className="font-semibold text-[#0d1f1a] capitalize truncate max-w-[100px]">
+                      <span className="font-semibold text-[#0d1f1a] truncate max-w-[100px]">
                         {valPaymentMode === 'bank' 
-                          ? bankAccounts.find((b: any) => b.id === valBankAccountId)?.name 
+                          ? `${bankAccounts.find((b: any) => b.id === valBankAccountId)?.name || ''} (${isCheque ? 'Cheque' : 'Bank'})`
                           : cashAccounts.find((c: any) => c.id === valCashAccountId)?.name || 'Not set'}
                       </span>
                     </div>
@@ -883,7 +922,7 @@ export const Pay: React.FC = () => {
 
                   <div className="bg-[#f8fafb] p-2 rounded-xl border border-[#e2e8e6] flex justify-between items-center">
                     <div>
-                      <span className="text-[9px] text-[#8aa89f] font-bold block">REFERENCE #</span>
+                      <span className="text-[9px] text-[#8aa89f] font-bold block">{isCheque ? 'CHEQUE NUMBER' : 'REFERENCE #'}</span>
                       <span className="font-semibold text-[#0d1f1a] truncate max-w-[100px]">{valReferenceNumber || '—'}</span>
                     </div>
                     <button onClick={() => setStep(7)} className="p-1 hover:bg-[#e2e8e6] rounded text-emerald-800 cursor-pointer"><Edit2 className="w-3.5 h-3.5" /></button>
