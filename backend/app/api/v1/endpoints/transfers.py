@@ -59,6 +59,18 @@ async def get_transfer(
     return await _enrich_transfer(db, transfer)
 
 
+@router.put("/{transfer_id}", response_model=FundTransferOut)
+async def update_transfer(
+    transfer_id: str,
+    body: FundTransferCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update a fund transfer. Reverts previous balance movements and posts updated ones."""
+    transfer = await ledger_service.update_fund_transfer(db, transfer_id, body, current_user.id)
+    return await _enrich_transfer(db, transfer)
+
+
 async def _enrich_transfer(db: AsyncSession, t: FundTransfer) -> FundTransferOut:
     async def get_name(account_type: str, account_id: str) -> Optional[str]:
         if account_type == "bank":

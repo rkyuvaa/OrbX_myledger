@@ -67,6 +67,18 @@ async def get_receipt(
     return await _enrich_receipt(db, voucher)
 
 
+@router.put("/{receipt_id}", response_model=ReceiptOut)
+async def update_receipt(
+    receipt_id: str,
+    body: ReceiptCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update a receipt voucher. Reverts previous balance changes, updates account mappings, Daybook and Ledger entries."""
+    voucher = await ledger_service.update_receipt(db, receipt_id, body, current_user.id)
+    return await _enrich_receipt(db, voucher)
+
+
 @router.post("/{receipt_id}/reverse", response_model=ReceiptOut)
 async def reverse_receipt(
     receipt_id: str,

@@ -66,6 +66,18 @@ async def get_payment(
     return await _enrich_payment(db, voucher)
 
 
+@router.put("/{payment_id}", response_model=PaymentOut)
+async def update_payment(
+    payment_id: str,
+    body: PaymentCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update a payment voucher. Reverts previous balance changes, checks overdraft limits, and posts daybook/ledger entries."""
+    voucher = await ledger_service.update_payment(db, payment_id, body, current_user.id)
+    return await _enrich_payment(db, voucher)
+
+
 @router.post("/{payment_id}/reverse", response_model=PaymentOut)
 async def reverse_payment(
     payment_id: str,

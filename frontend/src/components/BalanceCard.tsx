@@ -133,11 +133,11 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ totalBalance, accounts
                 <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#4a6b62] mb-2">
                   Account-wise Breakup
                 </h4>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
                   {accounts.length === 0 ? (
                     <p className="text-xs text-[#8aa89f] py-1">No accounts configured</p>
                   ) : (
-                    accounts.slice(0, 4).map((acc, index) => {
+                    accounts.map((acc, index) => {
                       const style = tileStyles[index % tileStyles.length];
                       return (
                         <div 
