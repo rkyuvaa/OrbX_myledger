@@ -107,17 +107,16 @@ export const Dashboard: React.FC = () => {
           iconClass="text-amber-600 font-bold"
         />
         <StatCard 
-          title="Cash Balance" 
-          value={fmt(kpis.total_cash_balance)} 
-          icon={Wallet} 
-          description="Cash in Hand" 
+          title={<>Cheques<br/>Received Today</>} 
+          value={fmt(kpis.today_received_cheques_clear)} 
+          description="Incoming clearing today"
+          valueClass="text-emerald-700 font-extrabold"
         />
         <StatCard 
-          title="Cheques clearing today" 
-          value={`${fmt(kpis.today_received_cheques_clear)} / ${fmt(kpis.today_given_cheques_clear)}`} 
-          icon={Landmark} 
-          description="In (Recd) / Out (Given)"
-          valueClass="text-emerald-950 font-extrabold text-sm sm:text-base md:text-[15px] lg:text-[13px] xl:text-[15px] truncate"
+          title={<>Cheques<br/>Given Today</>} 
+          value={fmt(kpis.today_given_cheques_clear)} 
+          description="Outgoing clearing today"
+          valueClass="text-red-600 font-extrabold"
         />
         <StatCard 
           title="Branch Collection Today" 
