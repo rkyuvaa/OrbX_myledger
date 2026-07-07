@@ -1066,12 +1066,6 @@ export const Daybook: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="page-header">
-        <div>
-          <h2 className="page-title">Daybook Register</h2>
-          <p className="page-subtitle">Chronological register of all financial transactions</p>
-        </div>
-      </div>
 
       {reversalError && (
         <div className="p-4 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-sm border border-red-100">
@@ -1205,14 +1199,23 @@ export const Daybook: React.FC = () => {
                     <tr key={entry.id} className={`${entry.credit > 0 ? 'bg-green-50/20' : 'bg-red-50/10'}`}>
                       <td className="font-bold text-[#023020] whitespace-nowrap">{entry.voucher_number}</td>
                       <td className="whitespace-nowrap">{entry.date}</td>
-                      <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]" title={entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ')}>
+                      <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[180px]" title={entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ')}>
                         <span className="text-xs font-semibold text-[#4a6b62]">
-                          {entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ')}
+                          {(() => {
+                            const bText = entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ');
+                            return bText.length > 20 ? `${bText.substring(0, 18)}...` : bText;
+                          })()}
                         </span>
                       </td>
                       <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[280px]" title={entry.narration ? `${entry.particulars} (${entry.narration})` : entry.particulars}>
-                        <span className="font-semibold text-xs text-[#0d1f1a]">{entry.particulars}</span>
-                        {entry.narration && <span className="text-[11px] text-[#8aa89f] italic ml-1.5">({entry.narration})</span>}
+                        <div className="flex flex-col justify-center leading-tight">
+                          <span className="font-semibold text-xs text-[#0d1f1a]">{entry.particulars}</span>
+                          {entry.narration && (
+                            <span className="text-[10px] text-[#8aa89f] italic overflow-hidden text-ellipsis whitespace-nowrap mt-0.5">
+                              {entry.narration}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="font-semibold text-green-600 whitespace-nowrap">
                         {entry.credit > 0 ? fmt(entry.credit) : '—'}
