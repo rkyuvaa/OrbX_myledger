@@ -19,7 +19,7 @@ export const AppLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafb] overflow-x-hidden">
+    <div className="flex h-screen bg-[#f8fafb] overflow-hidden">
       {/* Sidebar Navigation */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
@@ -32,7 +32,7 @@ export const AppLayout: React.FC = () => {
       )}
 
       {/* Main Panel */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <TopHeader onMenuClick={() => setIsSidebarOpen(true)} />
         
         {/* Main Content Area */}

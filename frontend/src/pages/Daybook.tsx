@@ -41,6 +41,9 @@ export const Daybook: React.FC = () => {
     },
   });
 
+  const totalCredit = entries.reduce((sum: number, entry: any) => sum + (entry.credit || 0), 0);
+  const totalDebit = entries.reduce((sum: number, entry: any) => sum + (entry.debit || 0), 0);
+
   // Reversal Mutation
   const reverseMutation = useMutation({
     mutationFn: async ({ id, type }: { id: string; type: string }) => {
@@ -1199,32 +1202,30 @@ export const Daybook: React.FC = () => {
                   </tr>
                 ) : (
                   entries.map((entry: any) => (
-                    <tr key={entry.id} className={entry.credit > 0 ? 'bg-green-50/20' : 'bg-red-50/10'}>
-                      <td className="font-bold text-[#023020]">{entry.voucher_number}</td>
-                      <td>{entry.date}</td>
-                      <td>
+                    <tr key={entry.id} className={`${entry.credit > 0 ? 'bg-green-50/20' : 'bg-red-50/10'}`}>
+                      <td className="font-bold text-[#023020] whitespace-nowrap">{entry.voucher_number}</td>
+                      <td className="whitespace-nowrap">{entry.date}</td>
+                      <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]" title={entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ')}>
                         <span className="text-xs font-semibold text-[#4a6b62]">
                           {entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ')}
                         </span>
                       </td>
-                      <td>
-                        <div>
-                          <p className="font-semibold text-xs text-[#0d1f1a]">{entry.particulars}</p>
-                          {entry.narration && <p className="text-[10px] text-[#8aa89f] italic">{entry.narration}</p>}
-                        </div>
+                      <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[280px]" title={entry.narration ? `${entry.particulars} (${entry.narration})` : entry.particulars}>
+                        <span className="font-semibold text-xs text-[#0d1f1a]">{entry.particulars}</span>
+                        {entry.narration && <span className="text-[11px] text-[#8aa89f] italic ml-1.5">({entry.narration})</span>}
                       </td>
-                      <td className="font-semibold text-green-600">
+                      <td className="font-semibold text-green-600 whitespace-nowrap">
                         {entry.credit > 0 ? fmt(entry.credit) : '—'}
                       </td>
-                      <td className="font-semibold text-red-600">
+                      <td className="font-semibold text-red-600 whitespace-nowrap">
                         {entry.debit > 0 ? fmt(entry.debit) : '—'}
                       </td>
-                      <td className="text-xs text-[#4a6b62]">
+                      <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px] text-xs text-[#4a6b62]" title={entry.reference_number || '—'}>
                         {entry.reference_number || '—'}
                       </td>
-                      <td>
+                      <td className="whitespace-nowrap">
                         {entry.particulars.includes('REVERSAL') || entry.narration?.includes('REVERSAL') ? (
-                          <span className="badge badge-red font-semibold text-[10px]">Reversal Entry</span>
+                          <span className="badge badge-red font-semibold text-[10px]">Reversal</span>
                         ) : (
                           <span className="text-[10px] text-[#8aa89f]">—</span>
                         )}
@@ -1263,6 +1264,16 @@ export const Daybook: React.FC = () => {
                   ))
                 )}
               </tbody>
+              {entries.length > 0 && (
+                <tfoot className="border-t-2 border-[#023020] bg-gray-50/70 font-bold text-xs select-none">
+                  <tr>
+                    <td colSpan={4} className="text-right pr-4 py-3 text-[#0d1f1a]">Total:</td>
+                    <td className="text-green-700 py-3 whitespace-nowrap">{fmt(totalCredit)}</td>
+                    <td className="text-red-700 py-3 whitespace-nowrap">{fmt(totalDebit)}</td>
+                    <td colSpan={3}></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         </div>
