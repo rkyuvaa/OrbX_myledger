@@ -127,13 +127,13 @@ export const Pay: React.FC = () => {
     if (valPaymentMode === 'bank') {
       const targetBank = bankAccounts.find((b: any) => b.id === valBankAccountId);
       if (targetBank && !targetBank.is_overdraft_allowed && targetBank.current_balance < amountNum) {
-        setErrorMessage(`Insufficient balance in ${targetBank.name}. Available: ₹${targetBank.current_balance}`);
+        setErrorMessage(`Insufficient balance in ${targetBank.name}. Available: ₹${targetBank.current_balance.toFixed(2)}`);
         return false;
       }
     } else {
       const targetCash = cashAccounts.find((c: any) => c.id === valCashAccountId);
       if (targetCash && targetCash.current_balance < amountNum) {
-        setErrorMessage(`Insufficient cash balance in ${targetCash.name}. Available: ₹${targetCash.current_balance}`);
+        setErrorMessage(`Insufficient cash balance in ${targetCash.name}. Available: ₹${targetCash.current_balance.toFixed(2)}`);
         return false;
       }
     }
@@ -707,7 +707,7 @@ export const Pay: React.FC = () => {
                       >
                         <div className="flex justify-between items-center text-xs">
                           <span>{bank.name}</span>
-                          <span className="opacity-80">Bal: ₹{bank.current_balance}</span>
+                          <span className="opacity-80">Bal: ₹{bank.current_balance.toFixed(2)}</span>
                         </div>
                       </button>
                     ))
@@ -727,7 +727,7 @@ export const Pay: React.FC = () => {
                       >
                         <div className="flex justify-between items-center text-xs">
                           <span>{cash.name}</span>
-                          <span className="opacity-80">Bal: ₹{cash.current_balance}</span>
+                          <span className="opacity-80">Bal: ₹{cash.current_balance.toFixed(2)}</span>
                         </div>
                       </button>
                     ))

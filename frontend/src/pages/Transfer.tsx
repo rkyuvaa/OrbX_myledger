@@ -72,13 +72,13 @@ export const Transfer: React.FC = () => {
     if (values.from_account_type === 'bank') {
       const srcBank = bankAccounts.find((b: any) => b.id === values.from_account_id);
       if (srcBank && !srcBank.is_overdraft_allowed && srcBank.current_balance < values.amount) {
-        setErrorMessage(`Insufficient balance in ${srcBank.name}. Available: ₹${srcBank.current_balance}`);
+        setErrorMessage(`Insufficient balance in ${srcBank.name}. Available: ₹${srcBank.current_balance.toFixed(2)}`);
         return false;
       }
     } else {
       const srcCash = cashAccounts.find((c: any) => c.id === values.from_account_id);
       if (srcCash && srcCash.current_balance < values.amount) {
-        setErrorMessage(`Insufficient cash balance in ${srcCash.name}. Available: ₹${srcCash.current_balance}`);
+        setErrorMessage(`Insufficient cash balance in ${srcCash.name}. Available: ₹${srcCash.current_balance.toFixed(2)}`);
         return false;
       }
     }
@@ -179,8 +179,8 @@ export const Transfer: React.FC = () => {
                 <select className="input select py-1.5 text-xs bg-white" {...register('from_account_id')}>
                   <option value="">Select Account</option>
                   {fromAccountType === 'bank'
-                    ? bankAccounts.map((b: any) => <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance})</option>)
-                    : cashAccounts.map((c: any) => <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance})</option>)
+                    ? bankAccounts.map((b: any) => <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance.toFixed(2)})</option>)
+                    : cashAccounts.map((c: any) => <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance.toFixed(2)})</option>)
                   }
                 </select>
                 {errors.from_account_id && <p className="text-red-500 text-[10px] mt-0.5 font-semibold">{errors.from_account_id.message}</p>}
@@ -208,8 +208,8 @@ export const Transfer: React.FC = () => {
                 <select className="input select py-1.5 text-xs bg-white" {...register('to_account_id')}>
                   <option value="">Select Account</option>
                   {toAccountType === 'bank'
-                    ? bankAccounts.map((b: any) => <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance})</option>)
-                    : cashAccounts.map((c: any) => <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance})</option>)
+                    ? bankAccounts.map((b: any) => <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance.toFixed(2)})</option>)
+                    : cashAccounts.map((c: any) => <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance.toFixed(2)})</option>)
                   }
                 </select>
                 {errors.to_account_id && <p className="text-red-500 text-[10px] mt-0.5 font-semibold">{errors.to_account_id.message}</p>}

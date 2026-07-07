@@ -684,7 +684,7 @@ export const Receive: React.FC = () => {
                       >
                         <div className="flex justify-between items-center">
                           <span>{bank.name}</span>
-                          <span className="opacity-80">Bal: ₹{bank.current_balance}</span>
+                          <span className="opacity-80">Bal: ₹{bank.current_balance.toFixed(2)}</span>
                         </div>
                       </button>
                     ))
@@ -704,7 +704,7 @@ export const Receive: React.FC = () => {
                       >
                         <div className="flex justify-between items-center">
                           <span>{cash.name}</span>
-                          <span className="opacity-80">Bal: ₹{cash.current_balance}</span>
+                          <span className="opacity-80">Bal: ₹{cash.current_balance.toFixed(2)}</span>
                         </div>
                       </button>
                     ))

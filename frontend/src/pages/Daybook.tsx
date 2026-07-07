@@ -1402,7 +1402,7 @@ export const Daybook: React.FC = () => {
                         >
                           <option value="">Select Bank</option>
                           {bankAccounts.map((b: any) => (
-                            <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance})</option>
+                            <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance.toFixed(2)})</option>
                           ))}
                         </select>
                       ) : (
@@ -1414,7 +1414,7 @@ export const Daybook: React.FC = () => {
                         >
                           <option value="">Select Cash Account</option>
                           {cashAccounts.map((c: any) => (
-                            <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance})</option>
+                            <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance.toFixed(2)})</option>
                           ))}
                         </select>
                       )}
@@ -1461,8 +1461,8 @@ export const Daybook: React.FC = () => {
                       >
                         <option value="">Select Source</option>
                         {editFromAccountType === 'bank'
-                          ? bankAccounts.map((b: any) => <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance})</option>)
-                          : cashAccounts.map((c: any) => <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance})</option>)
+                          ? bankAccounts.map((b: any) => <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance.toFixed(2)})</option>)
+                          : cashAccounts.map((c: any) => <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance.toFixed(2)})</option>)
                         }
                       </select>
                     </div>
@@ -1506,8 +1506,8 @@ export const Daybook: React.FC = () => {
                       >
                         <option value="">Select Destination</option>
                         {editToAccountType === 'bank'
-                          ? bankAccounts.map((b: any) => <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance})</option>)
-                          : cashAccounts.map((c: any) => <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance})</option>)
+                          ? bankAccounts.map((b: any) => <option key={b.id} value={b.id}>{b.name} (Bal: ₹{b.current_balance.toFixed(2)})</option>)
+                          : cashAccounts.map((c: any) => <option key={c.id} value={c.id}>{c.name} (Bal: ₹{c.current_balance.toFixed(2)})</option>)
                         }
                       </select>
                     </div>
