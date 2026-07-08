@@ -179,6 +179,14 @@ async def create_receipt(
     # Generate voucher number
     voucher_number = await get_next_voucher_number(db, "RCV", data.date)
 
+    # Determine if it's a pending cheque
+    is_pending_cheque = False
+    if data.payment_mode == "bank" and data.reference_number and "Cheque No:" in data.reference_number:
+        if "Status: Cleared" not in data.reference_number:
+            is_pending_cheque = True
+            if "Status: Pending" not in data.reference_number:
+                data.reference_number = f"{data.reference_number} | Status: Pending"
+
     # Create voucher record
     voucher = ReceiptVoucher(
         voucher_number=voucher_number,
@@ -200,7 +208,8 @@ async def create_receipt(
     particulars = f"Receipt from {data.received_from}"
     if data.payment_mode == "bank":
         bank = await _get_bank(db, data.bank_account_id)
-        bank.current_balance += data.amount
+        if not is_pending_cheque:
+            bank.current_balance += data.amount
         account_type = "bank"
         account_id = data.bank_account_id
         account_name = bank.name
@@ -230,18 +239,19 @@ async def create_receipt(
     )
 
     # Ledger entry
-    await _post_ledger(
-        db=db,
-        date=data.date,
-        account_type=account_type,
-        account_id=account_id,
-        voucher_type="RCV",
-        voucher_id=voucher.id,
-        voucher_number=voucher_number,
-        debit=0.0,
-        credit=data.amount,
-        description=particulars,
-    )
+    if not is_pending_cheque:
+        await _post_ledger(
+            db=db,
+            date=data.date,
+            account_type=account_type,
+            account_id=account_id,
+            voucher_type="RCV",
+            voucher_id=voucher.id,
+            voucher_number=voucher_number,
+            debit=0.0,
+            credit=data.amount,
+            description=particulars,
+        )
 
     # Audit
     db.add(AuditLog(
@@ -267,23 +277,23 @@ async def create_payment(
     data: PaymentCreate,
     posted_by_id: str,
 ) -> PaymentVoucher:
-    # Validate
-    if data.payment_mode == "bank":
-        if not data.bank_account_id:
-            raise HTTPException(status_code=422, detail="Bank account is required for bank payment mode")
-
-
-    if data.payment_mode == "cash" and not data.cash_account_id:
-        raise HTTPException(status_code=422, detail="Cash account is required for cash payment mode")
+    # Determine if it's a pending cheque
+    is_pending_cheque = False
+    if data.payment_mode == "bank" and data.reference_number and "Cheque No:" in data.reference_number:
+        if "Status: Cleared" not in data.reference_number:
+            is_pending_cheque = True
+            if "Status: Pending" not in data.reference_number:
+                data.reference_number = f"{data.reference_number} | Status: Pending"
 
     # Check sufficient balance
     if data.payment_mode == "bank":
-        bank = await _get_bank(db, data.bank_account_id)
-        if not bank.is_overdraft_allowed and bank.current_balance < data.amount:
-            raise HTTPException(
-                status_code=422,
-                detail=f"Insufficient balance in {bank.name}. Available: ₹{bank.current_balance:.2f}",
-            )
+        if not is_pending_cheque:
+            bank = await _get_bank(db, data.bank_account_id)
+            if not bank.is_overdraft_allowed and bank.current_balance < data.amount:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Insufficient balance in {bank.name}. Available: ₹{bank.current_balance:.2f}",
+                )
     else:
         cash = await _get_cash(db, data.cash_account_id)
         if cash.current_balance < data.amount:
@@ -315,7 +325,8 @@ async def create_payment(
     particulars = f"Payment to {data.paid_to}"
     if data.payment_mode == "bank":
         bank = await _get_bank(db, data.bank_account_id)
-        bank.current_balance -= data.amount
+        if not is_pending_cheque:
+            bank.current_balance -= data.amount
         account_type = "bank"
         account_id = data.bank_account_id
     else:
@@ -343,18 +354,19 @@ async def create_payment(
     )
 
     # Ledger entry
-    await _post_ledger(
-        db=db,
-        date=data.date,
-        account_type=account_type,
-        account_id=account_id,
-        voucher_type="PAY",
-        voucher_id=voucher.id,
-        voucher_number=voucher_number,
-        debit=data.amount,
-        credit=0.0,
-        description=particulars,
-    )
+    if not is_pending_cheque:
+        await _post_ledger(
+            db=db,
+            date=data.date,
+            account_type=account_type,
+            account_id=account_id,
+            voucher_type="PAY",
+            voucher_id=voucher.id,
+            voucher_number=voucher_number,
+            debit=data.amount,
+            credit=0.0,
+            description=particulars,
+        )
 
     db.add(AuditLog(
         user_id=posted_by_id,
@@ -387,14 +399,23 @@ async def create_expense(
     if data.payment_mode == "cash" and not data.cash_account_id:
         raise HTTPException(status_code=422, detail="Cash account is required for cash payment mode")
 
+    # Determine if it's a pending cheque
+    is_pending_cheque = False
+    if data.payment_mode == "bank" and data.reference_number and "Cheque No:" in data.reference_number:
+        if "Status: Cleared" not in data.reference_number:
+            is_pending_cheque = True
+            if "Status: Pending" not in data.reference_number:
+                data.reference_number = f"{data.reference_number} | Status: Pending"
+
     # Check sufficient balance
     if data.payment_mode == "bank":
-        bank = await _get_bank(db, data.bank_account_id)
-        if not bank.is_overdraft_allowed and bank.current_balance < data.amount:
-            raise HTTPException(
-                status_code=422,
-                detail=f"Insufficient balance in {bank.name}. Available: ₹{bank.current_balance:.2f}",
-            )
+        if not is_pending_cheque:
+            bank = await _get_bank(db, data.bank_account_id)
+            if not bank.is_overdraft_allowed and bank.current_balance < data.amount:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Insufficient balance in {bank.name}. Available: ₹{bank.current_balance:.2f}",
+                )
     else:
         cash = await _get_cash(db, data.cash_account_id)
         if cash.current_balance < data.amount:
@@ -426,7 +447,8 @@ async def create_expense(
     particulars = f"Expense to {data.paid_to}"
     if data.payment_mode == "bank":
         bank = await _get_bank(db, data.bank_account_id)
-        bank.current_balance -= data.amount
+        if not is_pending_cheque:
+            bank.current_balance -= data.amount
         account_type = "bank"
         account_id = data.bank_account_id
     else:
@@ -454,18 +476,19 @@ async def create_expense(
     )
 
     # Ledger entry
-    await _post_ledger(
-        db=db,
-        date=data.date,
-        account_type=account_type,
-        account_id=account_id,
-        voucher_type="EXP",
-        voucher_id=voucher.id,
-        voucher_number=voucher_number,
-        debit=data.amount,
-        credit=0.0,
-        description=particulars,
-    )
+    if not is_pending_cheque:
+        await _post_ledger(
+            db=db,
+            date=data.date,
+            account_type=account_type,
+            account_id=account_id,
+            voucher_type="EXP",
+            voucher_id=voucher.id,
+            voucher_number=voucher_number,
+            debit=data.amount,
+            credit=0.0,
+            description=particulars,
+        )
 
     db.add(AuditLog(
         user_id=posted_by_id,
@@ -670,9 +693,11 @@ async def reverse_receipt(
     original.is_reversed = True
 
     # Reverse the balance impact
+    is_pending_cheque = (original.payment_mode == "bank" and original.reference_number and "Cheque No:" in original.reference_number and "Status: Pending" in original.reference_number)
     if original.payment_mode == "bank":
         bank = await _get_bank(db, original.bank_account_id)
-        bank.current_balance -= original.amount
+        if not is_pending_cheque:
+            bank.current_balance -= original.amount
         account_type = "bank"
         account_id = original.bank_account_id
     else:
@@ -690,11 +715,12 @@ async def reverse_receipt(
         payment_mode=original.payment_mode, reference_number=original.reference_number,
         narration=reversal.narration, account_type=account_type, account_id=account_id,
     )
-    await _post_ledger(
-        db=db, date=date.today(), account_type=account_type, account_id=account_id,
-        voucher_type="RCV", voucher_id=reversal.id, voucher_number=rev_voucher_number,
-        debit=original.amount, credit=0.0, description=particulars,
-    )
+    if not is_pending_cheque:
+        await _post_ledger(
+            db=db, date=date.today(), account_type=account_type, account_id=account_id,
+            voucher_type="RCV", voucher_id=reversal.id, voucher_number=rev_voucher_number,
+            debit=original.amount, credit=0.0, description=particulars,
+        )
 
     db.add(AuditLog(
         user_id=posted_by_id,
@@ -742,9 +768,11 @@ async def reverse_payment(
     original.is_reversed = True
 
     # Reverse the balance (credit back)
+    is_pending_cheque = (original.payment_mode == "bank" and original.reference_number and "Cheque No:" in original.reference_number and "Status: Pending" in original.reference_number)
     if original.payment_mode == "bank":
         bank = await _get_bank(db, original.bank_account_id)
-        bank.current_balance += original.amount
+        if not is_pending_cheque:
+            bank.current_balance += original.amount
         account_type = "bank"
         account_id = original.bank_account_id
     else:
@@ -762,11 +790,12 @@ async def reverse_payment(
         payment_mode=original.payment_mode, reference_number=original.reference_number,
         narration=reversal.narration, account_type=account_type, account_id=account_id,
     )
-    await _post_ledger(
-        db=db, date=date.today(), account_type=account_type, account_id=account_id,
-        voucher_type="PAY", voucher_id=reversal.id, voucher_number=rev_voucher_number,
-        debit=0.0, credit=original.amount, description=particulars,
-    )
+    if not is_pending_cheque:
+        await _post_ledger(
+            db=db, date=date.today(), account_type=account_type, account_id=account_id,
+            voucher_type="PAY", voucher_id=reversal.id, voucher_number=rev_voucher_number,
+            debit=0.0, credit=original.amount, description=particulars,
+        )
 
     db.add(AuditLog(
         user_id=posted_by_id,
@@ -814,9 +843,11 @@ async def reverse_expense(
     original.is_reversed = True
 
     # Reverse the balance (credit back)
+    is_pending_cheque = (original.payment_mode == "bank" and original.reference_number and "Cheque No:" in original.reference_number and "Status: Pending" in original.reference_number)
     if original.payment_mode == "bank":
         bank = await _get_bank(db, original.bank_account_id)
-        bank.current_balance += original.amount
+        if not is_pending_cheque:
+            bank.current_balance += original.amount
         account_type = "bank"
         account_id = original.bank_account_id
     else:
@@ -834,11 +865,12 @@ async def reverse_expense(
         payment_mode=original.payment_mode, reference_number=original.reference_number,
         narration=reversal.narration, account_type=account_type, account_id=account_id,
     )
-    await _post_ledger(
-        db=db, date=date.today(), account_type=account_type, account_id=account_id,
-        voucher_type="EXP", voucher_id=reversal.id, voucher_number=rev_voucher_number,
-        debit=0.0, credit=original.amount, description=particulars,
-    )
+    if not is_pending_cheque:
+        await _post_ledger(
+            db=db, date=date.today(), account_type=account_type, account_id=account_id,
+            voucher_type="EXP", voucher_id=reversal.id, voucher_number=rev_voucher_number,
+            debit=0.0, credit=original.amount, description=particulars,
+        )
 
     db.add(AuditLog(
         user_id=posted_by_id,
@@ -918,24 +950,26 @@ async def get_dashboard_summary(db: AsyncSession) -> DashboardSummaryOut:
     # Today's cheques calculations (based on Date: YYYY-MM-DD pattern in reference number)
     today_str = today.strftime("%Y-%m-%d")
     
-    # Received cheques clearing today
+    # Received cheques clearing today (Pending and Date is today)
     rcv_cheques_result = await db.execute(
         select(ReceiptVoucher)
         .where(
             ReceiptVoucher.payment_mode == "bank",
             ReceiptVoucher.is_reversed == False,
-            ReceiptVoucher.reference_number.like(f"%Date: {today_str}%")
+            ReceiptVoucher.reference_number.like(f"%Date: {today_str}%"),
+            ReceiptVoucher.reference_number.like("%Status: Pending%")
         )
     )
     today_received_cheques_clear = float(sum(v.amount for v in rcv_cheques_result.scalars().all()))
 
-    # Given cheques clearing today
+    # Given cheques clearing today (Pending and Date is today)
     pay_cheques_result = await db.execute(
         select(PaymentVoucher)
         .where(
             PaymentVoucher.payment_mode == "bank",
             PaymentVoucher.is_reversed == False,
-            PaymentVoucher.reference_number.like(f"%Date: {today_str}%")
+            PaymentVoucher.reference_number.like(f"%Date: {today_str}%"),
+            PaymentVoucher.reference_number.like("%Status: Pending%")
         )
     )
     exp_cheques_result = await db.execute(
@@ -943,7 +977,8 @@ async def get_dashboard_summary(db: AsyncSession) -> DashboardSummaryOut:
         .where(
             ExpenseVoucher.payment_mode == "bank",
             ExpenseVoucher.is_reversed == False,
-            ExpenseVoucher.reference_number.like(f"%Date: {today_str}%")
+            ExpenseVoucher.reference_number.like(f"%Date: {today_str}%"),
+            ExpenseVoucher.reference_number.like("%Status: Pending%")
         )
     )
     today_given_cheques_clear = float(

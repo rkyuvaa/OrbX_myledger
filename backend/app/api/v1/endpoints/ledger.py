@@ -6,9 +6,10 @@ from sqlalchemy import select, func
 
 from app.db.session import get_db
 from app.models.auth import User
-from app.models.ledger import LedgerEntry, BankAccount, CashAccount, Branch
+from app.models.ledger import LedgerEntry, BankAccount, CashAccount, Branch, ReceiptVoucher, PaymentVoucher, ExpenseVoucher, DaybookEntry
 from app.schemas.ledger import LedgerEntryOut, LedgerStatementOut
 from app.api.v1.endpoints.auth import get_current_user
+from app.services.ledger_service import _post_ledger, _get_bank
 
 router = APIRouter(prefix="/ledger", tags=["Ledger"])
 
@@ -115,3 +116,85 @@ async def list_ledger_entries(
     q = q.offset(skip).limit(limit)
     result = await db.execute(q)
     return result.scalars().all()
+
+
+@router.post("/clear-cheque/{voucher_type}/{voucher_id}")
+async def clear_cheque(
+    voucher_type: str,
+    voucher_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Marks a pending cheque as cleared, updating the bank balance and posting to the ledger."""
+    if voucher_type == "RCV":
+        r = await db.execute(select(ReceiptVoucher).where(ReceiptVoucher.id == voucher_id))
+        voucher = r.scalar_one_or_none()
+        if not voucher:
+            raise HTTPException(status_code=404, detail="Receipt voucher not found")
+        particulars = f"Receipt from {voucher.received_from}"
+        debit, credit = 0.0, voucher.amount
+    elif voucher_type == "PAY":
+        r = await db.execute(select(PaymentVoucher).where(PaymentVoucher.id == voucher_id))
+        voucher = r.scalar_one_or_none()
+        if not voucher:
+            raise HTTPException(status_code=404, detail="Payment voucher not found")
+        particulars = f"Payment to {voucher.paid_to}"
+        debit, credit = voucher.amount, 0.0
+    elif voucher_type == "EXP":
+        r = await db.execute(select(ExpenseVoucher).where(ExpenseVoucher.id == voucher_id))
+        voucher = r.scalar_one_or_none()
+        if not voucher:
+            raise HTTPException(status_code=404, detail="Expense voucher not found")
+        particulars = f"Expense to {voucher.paid_to}"
+        debit, credit = voucher.amount, 0.0
+    else:
+        raise HTTPException(status_code=400, detail="Invalid voucher type")
+
+    if not voucher.reference_number or "Status: Pending" not in voucher.reference_number:
+        raise HTTPException(status_code=400, detail="Voucher is not a pending cheque or is already cleared")
+
+    # Update reference status
+    new_ref = voucher.reference_number.replace("Status: Pending", "Status: Cleared")
+    voucher.reference_number = new_ref
+
+    # Update DaybookEntry reference status
+    db_entry_result = await db.execute(
+        select(DaybookEntry).where(DaybookEntry.voucher_id == voucher_id, DaybookEntry.voucher_type == voucher_type)
+    )
+    db_entry = db_entry_result.scalar_one_or_none()
+    if db_entry:
+        db_entry.reference_number = new_ref
+
+    # Update bank account balance
+    bank = await _get_bank(db, voucher.bank_account_id)
+    if not bank:
+        raise HTTPException(status_code=404, detail="Bank account not found")
+
+    if voucher_type in ("PAY", "EXP"):
+        # Validate balance limits if overdraft is not allowed
+        if not bank.is_overdraft_allowed and bank.current_balance < voucher.amount:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient balance in {bank.name} to clear this cheque. Available: ₹{bank.current_balance:.2f}",
+            )
+        bank.current_balance -= voucher.amount
+    else:
+        bank.current_balance += voucher.amount
+
+    # Post official LedgerEntry
+    await _post_ledger(
+        db=db,
+        date=voucher.date,
+        account_type="bank",
+        account_id=voucher.bank_account_id,
+        voucher_type=voucher_type,
+        voucher_id=voucher_id,
+        voucher_number=voucher.voucher_number,
+        debit=debit,
+        credit=credit,
+        description=particulars,
+    )
+
+    await db.commit()
+    return {"status": "success", "message": "Cheque cleared successfully", "voucher_number": voucher.voucher_number}
+
