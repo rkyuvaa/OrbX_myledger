@@ -13,6 +13,7 @@ interface StatCardProps {
   valueClass?: string;
   iconClass?: string;
   iconBgClass?: string;
+  cardClass?: string;
 }
 
 export const StatCard: React.FC<StatCardProps> = ({ 
@@ -23,10 +24,11 @@ export const StatCard: React.FC<StatCardProps> = ({
   trend,
   valueClass,
   iconClass,
-  iconBgClass
+  iconBgClass,
+  cardClass
 }) => {
   return (
-    <div className="card card-hover flex flex-col justify-between min-h-[120px] p-5">
+    <div className={`card card-hover flex flex-col justify-between min-h-[120px] p-5 ${cardClass || ''}`}>
       <div className="flex items-start justify-between">
         <div>
           <span className="label text-xs uppercase tracking-wider block min-h-[32px]">{title}</span>

@@ -162,6 +162,7 @@ export const Dashboard: React.FC = () => {
             value={fmt(kpis.today_received_cheques_clear)} 
             description="Incoming clearing today"
             valueClass="text-emerald-700 font-extrabold"
+            cardClass={kpis.today_received_cheques_clear > 0 ? 'animate-highlight-emerald border-emerald-500' : ''}
           />
         </div>
         <div onClick={() => setActiveChequeModal('given')} className="cursor-pointer">
@@ -170,6 +171,7 @@ export const Dashboard: React.FC = () => {
             value={fmt(kpis.today_given_cheques_clear)} 
             description="Outgoing clearing today"
             valueClass="text-red-600 font-extrabold"
+            cardClass={kpis.today_given_cheques_clear > 0 ? 'animate-highlight-red border-red-500' : ''}
           />
         </div>
         <StatCard 
