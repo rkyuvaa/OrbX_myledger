@@ -56,7 +56,7 @@ export const Dashboard: React.FC = () => {
   });
 
   const filteredCheques = React.useMemo(() => {
-    if (!activeChequeModal) return [];
+    if (!activeChequeModal || !Array.isArray(pendingCheques)) return [];
     return pendingCheques.filter((entry: any) => {
       const isRcv = entry.voucher_type === 'RCV';
       if (activeChequeModal === 'received') return isRcv;
@@ -77,9 +77,19 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const { kpis, monthly_flow } = dashboardData;
+  const kpis = dashboardData?.kpis;
+  const monthly_flow = dashboardData?.monthly_flow || [];
 
-  const totalBankAndCash = kpis.total_bank_balance + kpis.total_cash_balance;
+  if (!kpis) {
+    return (
+      <div className="card p-6 border-red-200 bg-red-50 text-red-700 text-center">
+        <h3 className="font-bold">Error loading dashboard data</h3>
+        <p className="text-sm mt-2">Received invalid response format from the server.</p>
+      </div>
+    );
+  }
+
+  const totalBankAndCash = (kpis.total_bank_balance || 0) + (kpis.total_cash_balance || 0);
 
   // Format currency helper
   const fmt = (val: number) => 
