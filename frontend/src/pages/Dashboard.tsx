@@ -55,6 +55,15 @@ export const Dashboard: React.FC = () => {
     }
   });
 
+  const filteredCheques = React.useMemo(() => {
+    if (!activeChequeModal) return [];
+    return pendingCheques.filter((entry: any) => {
+      const isRcv = entry.voucher_type === 'RCV';
+      if (activeChequeModal === 'received') return isRcv;
+      return !isRcv;
+    });
+  }, [pendingCheques, activeChequeModal]);
+
   if (isLoading) {
     return <LoadingSkeleton rows={6} cols={4} />;
   }
@@ -71,15 +80,6 @@ export const Dashboard: React.FC = () => {
   const { kpis, monthly_flow } = dashboardData;
 
   const totalBankAndCash = kpis.total_bank_balance + kpis.total_cash_balance;
-
-  const filteredCheques = React.useMemo(() => {
-    if (!activeChequeModal) return [];
-    return pendingCheques.filter((entry: any) => {
-      const isRcv = entry.voucher_type === 'RCV';
-      if (activeChequeModal === 'received') return isRcv;
-      return !isRcv;
-    });
-  }, [pendingCheques, activeChequeModal]);
 
   // Format currency helper
   const fmt = (val: number) => 
