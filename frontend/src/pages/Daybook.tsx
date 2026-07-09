@@ -1214,12 +1214,12 @@ export const Daybook: React.FC = () => {
             <table className="data-table daybook-table">
               <thead>
                 <tr>
-                  <th style={{ width: '14%' }} className="text-center">Voucher #</th>
-                  <th style={{ width: '14%' }} className="text-left">Date</th>
-                  <th style={{ width: '18%' }} className="text-left">Branch</th>
-                  <th style={{ width: '34%' }} className="text-left">Particulars</th>
-                  <th style={{ width: '10%' }} className="text-right">Received (Cr)</th>
-                  <th style={{ width: '10%' }} className="text-right">Paid (Dr)</th>
+                  <th style={{ width: '15%' }} className="text-center">Voucher #</th>
+                  <th style={{ width: '15%' }} className="text-left">Date</th>
+                  <th style={{ width: '20%' }} className="text-left">Branch</th>
+                  <th style={{ width: '32%' }} className="text-left">Particulars</th>
+                  <th style={{ width: '9%' }} className="text-right">Received (Cr)</th>
+                  <th style={{ width: '9%' }} className="text-right">Paid (Dr)</th>
                   <th className="print:hidden text-left" style={{ width: '100px' }}>Reference</th>
                   <th className="print:hidden text-left" style={{ width: '80px' }}>Reversed?</th>
                   <th className="text-right print:hidden" style={{ width: '100px' }}>Actions</th>

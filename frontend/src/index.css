@@ -301,8 +301,8 @@
 /* Print Media Styles */
 @media print {
   @page {
-    size: A4 landscape;
-    margin: 1.2cm 1cm 1.5cm 1cm;
+    size: A4 portrait;
+    margin: 8mm;
   }
 
   /* Hide interactive/non-report elements */
@@ -345,10 +345,10 @@
     background: white !important;
     color: black !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    font-size: 11px !important;
-    line-height: 18px !important;
+    font-size: 9pt !important;
+    line-height: 13pt !important;
     margin: 0 !important;
-    padding: 0.8cm !important; /* Consistently margins all sides of printed documents */
+    padding: 0 !important; /* Zero padding inside body since @page margin is 8mm */
   }
 
   .card {
@@ -392,9 +392,9 @@
   table.data-table th, 
   table.data-table td {
     border: 1px solid #444444 !important;
-    padding: 6px 8px !important;
-    font-size: 10pt !important;
-    line-height: 13pt !important;
+    padding: 5px 5px !important; /* Reduced padding from 8px to 5px */
+    font-size: 9pt !important;    /* Reduced font size to 9pt */
+    line-height: 12pt !important;
     color: #000000 !important;
     background: transparent !important;
     vertical-align: top !important;
