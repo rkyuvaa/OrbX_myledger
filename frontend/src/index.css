@@ -336,6 +336,8 @@
     overflow-y: visible !important;
     display: block !important;
     position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   /* Make sure container spans full width without shadows or custom borders */
@@ -356,6 +358,7 @@
     margin: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+    overflow: visible !important;
   }
 
   .table-container {
@@ -390,7 +393,27 @@
     line-height: 14px !important;
     color: #000000 !important;
     background: transparent !important;
+  }
+
+  /* Force short key columns to stay in a single line on print */
+  table.data-table th:nth-child(1),
+  table.data-table td:nth-child(1), /* Voucher # */
+  table.data-table th:nth-child(2),
+  table.data-table td:nth-child(2), /* Date */
+  table.data-table th:nth-child(5),
+  table.data-table td:nth-child(5), /* Received (Cr) */
+  table.data-table th:nth-child(6),
+  table.data-table td:nth-child(6)  /* Paid (Dr) */ {
     white-space: nowrap !important;
+  }
+
+  /* Allow description/text columns to wrap on print to fit layout */
+  table.data-table th:nth-child(3),
+  table.data-table td:nth-child(3), /* Branch */
+  table.data-table th:nth-child(4),
+  table.data-table td:nth-child(4)  /* Particulars */ {
+    white-space: normal !important;
+    word-break: break-word !important;
   }
 
   table.data-table thead th {
