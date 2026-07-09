@@ -316,7 +316,9 @@
   .label,
   .flex-wrap,
   .card-filters,
-  .bg-white\/10 {
+  .bg-white\/10,
+  #sidebar-nav,
+  #top-header {
     display: none !important;
   }
 
@@ -344,7 +346,7 @@
     font-size: 11px !important;
     line-height: 18px !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 1.2cm !important; /* Consistently margins all sides of printed documents */
   }
 
   .card {

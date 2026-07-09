@@ -20,7 +20,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onMenuClick }) => {
   }).format(new Date());
 
   return (
-    <header className="h-16 border-b border-[#e2e8e6] bg-white flex items-center justify-between px-6 z-10 shadow-xs">
+    <header id="top-header" className="print:hidden h-16 border-b border-[#e2e8e6] bg-white flex items-center justify-between px-6 z-10 shadow-xs">
       <div className="flex items-center gap-3">
         {/* Mobile Hamburger menu */}
         <button 
