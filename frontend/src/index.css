@@ -403,9 +403,11 @@
 
   /* Column-specific rules */
   /* Daybook Column-specific rules */
+  /* Voucher (Column 1): Never wrap, never truncate, never clip */
   table.daybook-table td:nth-child(1) {
     white-space: nowrap !important;
-    text-overflow: ellipsis !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
   }
   
   /* Date Column: Date on first line, Time on second line in 7pt */
@@ -417,7 +419,7 @@
     line-height: 9pt !important;
   }
   
-  /* Branch Column: wrap to two lines if required */
+  /* Branch Column: wrap only inside Branch column */
   table.daybook-table td:nth-child(3) {
     white-space: normal !important;
     word-break: break-word !important;
@@ -436,12 +438,14 @@
     line-height: 9pt !important;
   }
   
-  /* Received & Paid Columns: nowrap, right-aligned, 8.5pt Bold */
+  /* Received & Paid Columns: nowrap, right-aligned, 8.5pt Bold, never truncate */
   table.daybook-table td:nth-child(5),
   table.daybook-table td:nth-child(6) {
     white-space: nowrap !important;
     text-align: right !important;
     font-weight: bold !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
   }
 
   /* Total Row styling for Daybook register */
@@ -452,6 +456,7 @@
     padding: 4px 6px !important;
     white-space: nowrap !important;
     color: #000000 !important;
+    overflow: visible !important;
   }
   table.daybook-table tfoot tr td:first-child {
     text-align: right !important;
@@ -479,6 +484,7 @@
   table.ledger-table td:nth-child(6) {
     white-space: nowrap !important; /* Received, Paid, Balance */
     text-align: right !important;
+    overflow: visible !important;
   }
 
   /* Table headers rules: Keep on one line, 8.5pt Bold, never truncate */
