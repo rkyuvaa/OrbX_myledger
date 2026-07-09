@@ -1214,15 +1214,15 @@ export const Daybook: React.FC = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Voucher #</th>
-                  <th>Date</th>
-                  <th>Branch</th>
-                  <th>Particulars</th>
-                  <th>Received (Cr)</th>
-                  <th>Paid (Dr)</th>
-                  <th className="print:hidden">Reference</th>
-                  <th className="print:hidden">Reversed?</th>
-                  <th className="text-right print:hidden">Actions</th>
+                  <th style={{ width: '12%' }} className="text-center">Voucher #</th>
+                  <th style={{ width: '12%' }} className="text-left">Date</th>
+                  <th style={{ width: '15%' }} className="text-left">Branch</th>
+                  <th style={{ width: '36%' }} className="text-left">Particulars</th>
+                  <th style={{ width: '12%' }} className="text-right">Received (Cr)</th>
+                  <th style={{ width: '13%' }} className="text-right">Paid (Dr)</th>
+                  <th className="print:hidden text-left" style={{ width: '100px' }}>Reference</th>
+                  <th className="print:hidden text-left" style={{ width: '80px' }}>Reversed?</th>
+                  <th className="text-right print:hidden" style={{ width: '100px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1235,47 +1235,44 @@ export const Daybook: React.FC = () => {
                 ) : (
                   entries.map((entry: any) => (
                     <tr key={entry.id} className={`${entry.credit > 0 ? 'bg-green-50/20' : 'bg-red-50/10'}`}>
-                      <td className="font-bold text-[#023020] whitespace-nowrap">{entry.voucher_number}</td>
-                      <td className="whitespace-nowrap">
-                        <div className="flex flex-col justify-center leading-tight">
-                          <span className="font-semibold text-xs text-[#0d1f1a]">
-                            {formatDate(entry.date)}
-                          </span>
-                          {entry.created_at && (
-                            <span className="text-[10px] text-[#8aa89f] font-normal mt-0.5">
-                              {formatTime(entry.created_at)}
-                            </span>
-                          )}
-                        </div>
+                      <td className="text-center font-bold text-[#023020] uppercase select-all">
+                        {entry.voucher_number}
                       </td>
-                      <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[180px]" title={entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ')}>
+                      <td className="text-left">
+                        <div className="font-semibold text-xs text-[#0d1f1a]">
+                          {formatDate(entry.date)}
+                        </div>
+                        {entry.created_at && (
+                          <div className="text-[10px] text-[#8aa89f] font-normal mt-0.5">
+                            {formatTime(entry.created_at)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="text-left" title={entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ')}>
                         <span className="text-xs font-semibold text-[#4a6b62]">
-                          {(() => {
-                            const bText = entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ');
-                            return bText.length > 20 ? `${bText.substring(0, 18)}...` : bText;
-                          })()}
+                          {entry.branch_name || (entry.voucher_number?.startsWith('EXP') ? 'Personal' : 'Corp / HQ')}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[280px]" title={entry.narration ? `${entry.particulars} (${entry.narration})` : entry.particulars}>
-                        <div className="flex flex-col justify-center leading-tight">
-                          <span className="font-semibold text-xs text-[#0d1f1a]">{entry.particulars}</span>
-                          {entry.narration && (
-                            <span className="text-[10px] text-[#8aa89f] italic overflow-hidden text-ellipsis whitespace-nowrap mt-0.5">
-                              {entry.narration}
-                            </span>
-                          )}
+                      <td className="text-left" title={entry.narration ? `${entry.particulars} (${entry.narration})` : entry.particulars}>
+                        <div className="font-semibold text-xs text-[#0d1f1a]">
+                          {entry.particulars}
                         </div>
+                        {entry.narration && (
+                          <div className="text-[10px] text-[#8aa89f] italic mt-0.5">
+                            {entry.narration}
+                          </div>
+                        )}
                       </td>
-                      <td className="font-semibold text-green-600 whitespace-nowrap">
+                      <td className="text-right font-semibold text-green-600">
                         {entry.credit > 0 ? fmt(entry.credit) : '—'}
                       </td>
-                      <td className="font-semibold text-red-600 whitespace-nowrap">
+                      <td className="text-right font-semibold text-red-600">
                         {entry.debit > 0 ? fmt(entry.debit) : '—'}
                       </td>
-                      <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px] text-xs text-[#4a6b62] print:hidden" title={entry.reference_number || '—'}>
+                      <td className="text-left text-xs text-[#4a6b62] print:hidden" title={entry.reference_number || '—'}>
                         {entry.reference_number || '—'}
                       </td>
-                      <td className="whitespace-nowrap print:hidden">
+                      <td className="text-left print:hidden">
                         {entry.particulars.includes('REVERSAL') || entry.narration?.includes('REVERSAL') ? (
                           <span className="badge badge-red font-semibold text-[10px]">Reversal</span>
                         ) : (

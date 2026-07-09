@@ -372,64 +372,62 @@
   table.data-table {
     width: 100% !important;
     border-collapse: collapse !important;
-    font-size: 10px !important;
-    line-height: 14px !important;
-    margin-top: 10px !important;
+    table-layout: fixed !important;
+    margin-top: 15px !important;
   }
 
   table.data-table thead {
     display: table-header-group !important; /* Repeats the headers on every page */
   }
 
-  table.data-table tr {
-    page-break-inside: avoid !important;
-  }
-
-  table.data-table th, 
-  table.data-table td {
-    border: 1px solid #000000 !important;
-    padding: 6px 8px !important;
-    font-size: 10px !important;
-    line-height: 14px !important;
-    color: #000000 !important;
-    background: transparent !important;
-  }
-
-  /* Force short key columns to stay in a single line on print */
-  table.data-table th:nth-child(1),
-  table.data-table td:nth-child(1), /* Voucher # */
-  table.data-table th:nth-child(2),
-  table.data-table td:nth-child(2), /* Date */
-  table.data-table th:nth-child(5),
-  table.data-table td:nth-child(5), /* Received (Cr) */
-  table.data-table th:nth-child(6),
-  table.data-table td:nth-child(6)  /* Paid (Dr) */ {
-    white-space: nowrap !important;
-  }
-
-  /* Allow description/text columns to wrap on print to fit layout */
-  table.data-table th:nth-child(3),
-  table.data-table td:nth-child(3), /* Branch */
-  table.data-table th:nth-child(4),
-  table.data-table td:nth-child(4)  /* Particulars */ {
-    white-space: normal !important;
-    word-break: break-word !important;
-  }
-
-  table.data-table thead th {
-    background: #f1f5f4 !important;
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-  }
-
   table.data-table tfoot {
     display: table-row-group !important; /* Prints totals only on the last page */
   }
 
-  /* Column alignments */
+  table.data-table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  table.data-table th, 
+  table.data-table td {
+    border: 1px solid #444444 !important;
+    padding: 6px 8px !important;
+    font-size: 10pt !important;
+    line-height: 13pt !important;
+    color: #000000 !important;
+    background: transparent !important;
+    vertical-align: top !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    text-overflow: clip !important;
+    white-space: normal !important; /* Let column width layout determine line breaking */
+  }
+
+  /* Header cell formatting */
+  table.data-table thead th {
+    background: #f5f5f5 !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    font-size: 10pt !important;
+    vertical-align: middle !important;
+    text-align: left !important;
+  }
+
+  /* Alignments override for print table cells */
+  table.data-table th.text-center,
+  table.data-table td.text-center {
+    text-align: center !important;
+  }
+
   table.data-table th.text-right,
   table.data-table td.text-right {
     text-align: right !important;
+  }
+
+  table.data-table th.text-left,
+  table.data-table td.text-left {
+    text-align: left !important;
   }
 
   /* Side-by-side columns fit in Portrait */
