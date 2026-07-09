@@ -89,6 +89,17 @@ async def reverse_expense(
     return await _enrich_expense(db, reversal)
 
 
+@router.delete("/{expense_id}")
+async def delete_expense(
+    expense_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete an expense voucher."""
+    await ledger_service.delete_expense(db, expense_id, current_user.id)
+    return {"status": "success", "message": "Expense voucher deleted successfully"}
+
+
 async def _enrich_expense(db: AsyncSession, v: ExpenseVoucher) -> ExpenseOut:
     branch_name = None
     if v.branch_id:

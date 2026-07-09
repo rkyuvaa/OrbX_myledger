@@ -89,6 +89,17 @@ async def reverse_payment(
     return await _enrich_payment(db, reversal)
 
 
+@router.delete("/{payment_id}")
+async def delete_payment(
+    payment_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a payment voucher."""
+    await ledger_service.delete_payment(db, payment_id, current_user.id)
+    return {"status": "success", "message": "Payment voucher deleted successfully"}
+
+
 async def _enrich_payment(db: AsyncSession, v: PaymentVoucher) -> PaymentOut:
     branch_name = None
     if v.branch_id:

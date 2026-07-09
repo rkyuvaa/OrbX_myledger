@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, RotateCcw, AlertCircle, Calendar, RefreshCw, Edit2, X, Printer } from 'lucide-react';
+import { Search, RotateCcw, AlertCircle, Calendar, RefreshCw, Edit2, X, Printer, Trash2 } from 'lucide-react';
 import api from '../lib/api';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 
@@ -44,27 +44,29 @@ export const Daybook: React.FC = () => {
   const totalCredit = entries.reduce((sum: number, entry: any) => sum + (entry.credit || 0), 0);
   const totalDebit = entries.reduce((sum: number, entry: any) => sum + (entry.debit || 0), 0);
 
-  // Reversal Mutation
-  const reverseMutation = useMutation({
+  // Deletion Mutation
+  const deleteMutation = useMutation({
     mutationFn: async ({ id, type }: { id: string; type: string }) => {
-      const endpoint = type === 'RCV' ? `/receipts/${id}/reverse` : type === 'EXP' ? `/expenses/${id}/reverse` : `/payments/${id}/reverse`;
-      const res = await api.post(endpoint);
+      const endpoint = type === 'RCV' ? `/receipts/${id}` : type === 'EXP' ? `/expenses/${id}` : `/payments/${id}`;
+      const res = await api.delete(endpoint);
       return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['daybook'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
-      alert('Voucher reversed successfully!');
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      alert('Voucher deleted successfully!');
     },
     onError: (err: any) => {
-      setReversalError(err.response?.data?.detail || 'Failed to reverse voucher.');
+      setReversalError(err.response?.data?.detail || 'Failed to delete voucher.');
     },
   });
 
-  const handleReverse = (id: string, type: string) => {
-    if (window.confirm('Are you sure you want to reverse this transaction? This creates an offsetting entry.')) {
+  const handleDelete = (id: string, type: string) => {
+    if (window.confirm('Are you sure you want to delete this voucher? This will permanently delete the voucher and restore the company accounts balance.')) {
       setReversalError(null);
-      reverseMutation.mutate({ id, type });
+      deleteMutation.mutate({ id, type });
     }
   };
 
@@ -1312,11 +1314,11 @@ export const Daybook: React.FC = () => {
                         {(entry.voucher_type === 'RCV' || entry.voucher_type === 'PAY' || entry.voucher_type === 'EXP') && 
                           !entry.particulars.includes('REVERSAL') && !entry.narration?.includes('REVERSAL') && (
                           <button
-                            onClick={() => handleReverse(entry.voucher_id, entry.voucher_type)}
+                            onClick={() => handleDelete(entry.voucher_id, entry.voucher_type)}
                             className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                            title="Reverse transaction"
+                            title="Delete transaction"
                           >
-                            <RotateCcw className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         )}
                       </td>

@@ -1724,3 +1724,162 @@ async def update_fund_transfer(
     await db.commit()
     await db.refresh(transfer)
     return transfer
+
+
+async def delete_receipt(
+    db: AsyncSession,
+    receipt_id: str,
+    posted_by_id: str,
+) -> None:
+    # 1. Fetch voucher
+    result = await db.execute(select(ReceiptVoucher).where(ReceiptVoucher.id == receipt_id))
+    voucher = result.scalar_one_or_none()
+    if not voucher:
+        raise HTTPException(status_code=404, detail="Receipt voucher not found")
+
+    # 2. Revert balance impact
+    account_type = None
+    account_id = None
+    if voucher.payment_mode == "bank" and voucher.bank_account_id:
+        is_pending_cheque = (voucher.payment_mode == "bank" and voucher.reference_number and "Cheque No:" in voucher.reference_number and "Status: Pending" in voucher.reference_number)
+        if not is_pending_cheque:
+            bank = await _get_bank(db, voucher.bank_account_id)
+            bank.current_balance -= voucher.amount
+            await db.flush()
+        account_type = "bank"
+        account_id = voucher.bank_account_id
+    elif voucher.payment_mode == "cash" and voucher.cash_account_id:
+        cash = await _get_cash(db, voucher.cash_account_id)
+        cash.current_balance -= voucher.amount
+        await db.flush()
+        account_type = "cash"
+        account_id = voucher.cash_account_id
+
+    # 3. Delete Daybook and Ledger entries
+    await db.execute(delete(DaybookEntry).where(DaybookEntry.voucher_id == voucher.id, DaybookEntry.voucher_type == "RCV"))
+    await db.execute(delete(LedgerEntry).where(LedgerEntry.voucher_id == voucher.id, LedgerEntry.voucher_type == "RCV"))
+
+    # 4. Delete voucher
+    await db.delete(voucher)
+    await db.flush()
+
+    # 5. Recalculate
+    if account_type and account_id:
+        await recalculate_ledger_balances(db, account_type, account_id)
+
+    # 6. Audit Log
+    db.add(AuditLog(
+        user_id=posted_by_id,
+        action="DELETE",
+        entity_type="ReceiptVoucher",
+        entity_id=receipt_id,
+        description=f"Deleted receipt {voucher.voucher_number} for ₹{voucher.amount:.2f}",
+    ))
+
+    await db.commit()
+
+
+async def delete_payment(
+    db: AsyncSession,
+    payment_id: str,
+    posted_by_id: str,
+) -> None:
+    # 1. Fetch voucher
+    result = await db.execute(select(PaymentVoucher).where(PaymentVoucher.id == payment_id))
+    voucher = result.scalar_one_or_none()
+    if not voucher:
+        raise HTTPException(status_code=404, detail="Payment voucher not found")
+
+    # 2. Revert balance impact: payment spent money, so we ADD it back
+    account_type = None
+    account_id = None
+    if voucher.payment_mode == "bank" and voucher.bank_account_id:
+        is_pending_cheque = (voucher.payment_mode == "bank" and voucher.reference_number and "Cheque No:" in voucher.reference_number and "Status: Pending" in voucher.reference_number)
+        if not is_pending_cheque:
+            bank = await _get_bank(db, voucher.bank_account_id)
+            bank.current_balance += voucher.amount
+            await db.flush()
+        account_type = "bank"
+        account_id = voucher.bank_account_id
+    elif voucher.payment_mode == "cash" and voucher.cash_account_id:
+        cash = await _get_cash(db, voucher.cash_account_id)
+        cash.current_balance += voucher.amount
+        await db.flush()
+        account_type = "cash"
+        account_id = voucher.cash_account_id
+
+    # 3. Delete Daybook and Ledger entries
+    await db.execute(delete(DaybookEntry).where(DaybookEntry.voucher_id == voucher.id, DaybookEntry.voucher_type == "PAY"))
+    await db.execute(delete(LedgerEntry).where(LedgerEntry.voucher_id == voucher.id, LedgerEntry.voucher_type == "PAY"))
+
+    # 4. Delete voucher
+    await db.delete(voucher)
+    await db.flush()
+
+    # 5. Recalculate
+    if account_type and account_id:
+        await recalculate_ledger_balances(db, account_type, account_id)
+
+    # 6. Audit Log
+    db.add(AuditLog(
+        user_id=posted_by_id,
+        action="DELETE",
+        entity_type="PaymentVoucher",
+        entity_id=payment_id,
+        description=f"Deleted payment {voucher.voucher_number} for ₹{voucher.amount:.2f}",
+    ))
+
+    await db.commit()
+
+
+async def delete_expense(
+    db: AsyncSession,
+    expense_id: str,
+    posted_by_id: str,
+) -> None:
+    # 1. Fetch voucher
+    result = await db.execute(select(ExpenseVoucher).where(ExpenseVoucher.id == expense_id))
+    voucher = result.scalar_one_or_none()
+    if not voucher:
+        raise HTTPException(status_code=404, detail="Expense voucher not found")
+
+    # 2. Revert balance impact: expense spent money, so we ADD it back
+    account_type = None
+    account_id = None
+    if voucher.payment_mode == "bank" and voucher.bank_account_id:
+        is_pending_cheque = (voucher.payment_mode == "bank" and voucher.reference_number and "Cheque No:" in voucher.reference_number and "Status: Pending" in voucher.reference_number)
+        if not is_pending_cheque:
+            bank = await _get_bank(db, voucher.bank_account_id)
+            bank.current_balance += voucher.amount
+            await db.flush()
+        account_type = "bank"
+        account_id = voucher.bank_account_id
+    elif voucher.payment_mode == "cash" and voucher.cash_account_id:
+        cash = await _get_cash(db, voucher.cash_account_id)
+        cash.current_balance += voucher.amount
+        await db.flush()
+        account_type = "cash"
+        account_id = voucher.cash_account_id
+
+    # 3. Delete Daybook and Ledger entries
+    await db.execute(delete(DaybookEntry).where(DaybookEntry.voucher_id == voucher.id, DaybookEntry.voucher_type == "EXP"))
+    await db.execute(delete(LedgerEntry).where(LedgerEntry.voucher_id == voucher.id, LedgerEntry.voucher_type == "EXP"))
+
+    # 4. Delete voucher
+    await db.delete(voucher)
+    await db.flush()
+
+    # 5. Recalculate
+    if account_type and account_id:
+        await recalculate_ledger_balances(db, account_type, account_id)
+
+    # 6. Audit Log
+    db.add(AuditLog(
+        user_id=posted_by_id,
+        action="DELETE",
+        entity_type="ExpenseVoucher",
+        entity_id=expense_id,
+        description=f"Deleted expense {voucher.voucher_number} for ₹{voucher.amount:.2f}",
+    ))
+
+    await db.commit()

@@ -91,6 +91,17 @@ async def reverse_receipt(
     return await _enrich_receipt(db, reversal)
 
 
+@router.delete("/{receipt_id}")
+async def delete_receipt(
+    receipt_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a receipt voucher."""
+    await ledger_service.delete_receipt(db, receipt_id, current_user.id)
+    return {"status": "success", "message": "Receipt voucher deleted successfully"}
+
+
 async def _enrich_receipt(db: AsyncSession, v: ReceiptVoucher) -> ReceiptOut:
     """Attach related names to the voucher output."""
     branch_name = None
