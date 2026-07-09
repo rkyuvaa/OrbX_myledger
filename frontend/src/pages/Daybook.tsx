@@ -1211,7 +1211,7 @@ export const Daybook: React.FC = () => {
           </div>
 
           <div className="table-container">
-            <table className="data-table">
+            <table className="data-table daybook-table">
               <thead>
                 <tr>
                   <th style={{ width: '14%' }} className="text-center">Voucher #</th>

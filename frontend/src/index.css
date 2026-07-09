@@ -402,34 +402,46 @@
   }
 
   /* Column-specific rules */
-  /* Voucher (Column 1) */
-  table.data-table td:nth-child(1) {
+  /* Daybook Column-specific rules */
+  table.daybook-table td:nth-child(1) {
     white-space: nowrap !important;
     text-overflow: ellipsis !important;
   }
-
-  /* Date (Column 2) */
-  table.data-table td:nth-child(2) {
+  table.daybook-table td:nth-child(2) {
     white-space: nowrap !important;
   }
-
-  /* Branch (Column 3) */
-  table.data-table td:nth-child(3) {
+  table.daybook-table td:nth-child(3) {
     white-space: normal !important;
     word-break: break-word !important;
   }
-
-  /* Particulars (Column 4) */
-  table.data-table td:nth-child(4) {
+  table.daybook-table td:nth-child(4) {
     white-space: normal !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
   }
-
-  /* Received & Paid (Columns 5 and 6) */
-  table.data-table td:nth-child(5),
-  table.data-table td:nth-child(6) {
+  table.daybook-table td:nth-child(5),
+  table.daybook-table td:nth-child(6) {
     white-space: nowrap !important;
+    text-align: right !important;
+  }
+
+  /* Ledger Column-specific rules */
+  table.ledger-table td:nth-child(1) {
+    white-space: nowrap !important; /* Date */
+  }
+  table.ledger-table td:nth-child(2) {
+    white-space: nowrap !important; /* Voucher # */
+    text-overflow: ellipsis !important;
+  }
+  table.ledger-table td:nth-child(3) {
+    white-space: normal !important; /* Particulars / Description */
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+  }
+  table.ledger-table td:nth-child(4),
+  table.ledger-table td:nth-child(5),
+  table.ledger-table td:nth-child(6) {
+    white-space: nowrap !important; /* Received, Paid, Balance */
     text-align: right !important;
   }
 

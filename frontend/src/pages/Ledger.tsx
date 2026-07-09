@@ -168,9 +168,8 @@ export const Ledger: React.FC = () => {
             </div>
           </div>
 
-          {/* Statement Table */}
           <div className="table-container bg-white border border-[#e2e8e6]">
-            <table className="data-table">
+            <table className="data-table ledger-table">
               <thead>
                 <tr>
                   <th>Date</th>
