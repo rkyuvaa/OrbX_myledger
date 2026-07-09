@@ -1091,7 +1091,7 @@ export const Daybook: React.FC = () => {
       )}
 
       {/* Advanced Filters Card */}
-      <div className="card bg-white p-5 border border-[#e2e8e6] shadow-xs space-y-4">
+      <div className="card bg-white p-5 border border-[#e2e8e6] shadow-xs space-y-4 print:hidden">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
           <div>
             <label className="label">From Date</label>
@@ -1176,9 +1176,16 @@ export const Daybook: React.FC = () => {
               setPaymentMode('');
               setSearch('');
             }}
-            className="btn-outline text-xs px-4"
+            className="btn-outline text-xs px-4 cursor-pointer"
           >
             Clear Filters
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="btn-outline text-xs px-4 flex items-center gap-1.5 cursor-pointer bg-[#023020] text-white border-transparent hover:bg-[#034a31] transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Print Report</span>
           </button>
         </div>
       </div>
@@ -1187,7 +1194,21 @@ export const Daybook: React.FC = () => {
       {isLoading ? (
         <LoadingSkeleton rows={8} cols={6} />
       ) : (
-        <div className="card bg-white p-0 border border-[#e2e8e6] shadow-xs overflow-hidden">
+        <div className="card bg-white p-0 border border-[#e2e8e6] shadow-xs overflow-hidden print:border-none print:shadow-none">
+          {/* Print Header */}
+          <div className="hidden print:block text-center border-b pb-4 mb-6 px-6 pt-6">
+            <h1 className="text-2xl font-bold uppercase tracking-wider text-[#023020]">My Ledger</h1>
+            <p className="text-xs text-[#8aa89f] tracking-widest mt-1">CHRONOLOGICAL DAYBOOK REGISTER</p>
+            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 justify-center text-[10px] text-[#4a6b62] font-semibold">
+              {fromDate && <span>From: {fromDate}</span>}
+              {toDate && <span>To: {toDate}</span>}
+              {branchId && <span>Branch: {branches.find((b: any) => b.id === branchId)?.name || 'Specified'}</span>}
+              {voucherType && <span>Voucher Type: {voucherType}</span>}
+              {paymentMode && <span className="capitalize">Mode: {paymentMode}</span>}
+              {search && <span>Search: "{search}"</span>}
+            </div>
+          </div>
+
           <div className="table-container">
             <table className="data-table">
               <thead>
@@ -1200,7 +1221,7 @@ export const Daybook: React.FC = () => {
                   <th>Paid (Dr)</th>
                   <th>Reference</th>
                   <th>Reversed?</th>
-                  <th className="text-right">Actions</th>
+                  <th className="text-right print:hidden">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1260,7 +1281,7 @@ export const Daybook: React.FC = () => {
                           <span className="text-[10px] text-[#8aa89f]">—</span>
                         )}
                       </td>
-                      <td className="text-right flex items-center justify-end gap-1.5">
+                      <td className="text-right flex items-center justify-end gap-1.5 print:hidden">
                         {!entry.particulars.includes('REVERSAL') && !entry.narration?.includes('REVERSAL') && (
                           <button
                             onClick={() => handlePrint(entry.voucher_id, entry.voucher_type)}
