@@ -320,6 +320,22 @@
     display: none !important;
   }
 
+  /* Prevent cropping / scrolling layout wrappers */
+  html, 
+  body, 
+  #root, 
+  .h-screen, 
+  .h-full,
+  main {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-y: visible !important;
+    display: block !important;
+    position: static !important;
+  }
+
   /* Make sure container spans full width without shadows or custom borders */
   body {
     background: white !important;
