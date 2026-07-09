@@ -398,10 +398,15 @@
     color: #000000 !important;
     background: transparent !important;
     vertical-align: top !important;
+    white-space: nowrap !important; /* Keep columns on a single line by default */
+  }
+
+  /* Allow particulars and description to wrap if needed */
+  table.data-table th:nth-child(4),
+  table.data-table td:nth-child(4) {
+    white-space: normal !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
-    text-overflow: clip !important;
-    white-space: normal !important; /* Let column width layout determine line breaking */
   }
 
   /* Header cell formatting */
