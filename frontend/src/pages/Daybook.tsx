@@ -1199,9 +1199,10 @@ export const Daybook: React.FC = () => {
           <div className="hidden print:block text-center border-b pb-4 mb-6 px-6 pt-6">
             <h1 className="text-2xl font-bold uppercase tracking-wider text-[#023020]">My Ledger</h1>
             <p className="text-xs text-[#8aa89f] tracking-widest mt-1">CHRONOLOGICAL DAYBOOK REGISTER</p>
-            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 justify-center text-[10px] text-[#4a6b62] font-semibold">
-              {fromDate && <span>From: {fromDate}</span>}
-              {toDate && <span>To: {toDate}</span>}
+            <p className="text-[10px] text-[#4a6b62] font-semibold mt-2">
+              Period: {fromDate ? formatDate(fromDate) : 'The Beginning'} to {toDate ? formatDate(toDate) : 'Present'}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 justify-center text-[10px] text-[#8aa89f] font-semibold">
               {branchId && <span>Branch: {branches.find((b: any) => b.id === branchId)?.name || 'Specified'}</span>}
               {voucherType && <span>Voucher Type: {voucherType}</span>}
               {paymentMode && <span className="capitalize">Mode: {paymentMode}</span>}
@@ -1326,6 +1327,12 @@ export const Daybook: React.FC = () => {
                 </tfoot>
               )}
             </table>
+          </div>
+          {/* Print Footer */}
+          <div className="print-footer hidden">
+            <span>My Ledger - Daybook</span>
+            <span>Printed on: {new Date().toLocaleDateString('en-IN')}</span>
+            <span>Page <span className="print-footer-page"></span></span>
           </div>
         </div>
       )}

@@ -396,6 +396,10 @@
     text-transform: uppercase !important;
   }
 
+  table.data-table tfoot {
+    display: table-row-group !important; /* Prints totals only on the last page */
+  }
+
   /* Column alignments */
   table.data-table th.text-right,
   table.data-table td.text-right {

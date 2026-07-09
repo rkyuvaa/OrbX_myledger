@@ -7,6 +7,18 @@ import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 type ReportTab = 'cash-book' | 'bank-book' | 'branch-collect' | 'branch-pay' | 'cash-flow';
 
 export const Reports: React.FC = () => {
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return `${parts[0]}-${parts[1]}-${parts[2]}`;
+    }
+    return dateStr;
+  };
+
   const [activeTab, setActiveTab] = useState<ReportTab>('cash-book');
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
@@ -181,7 +193,7 @@ export const Reports: React.FC = () => {
             <div className="flex justify-between items-center border-b pb-4">
               <div>
                 <h3 className="text-md font-bold text-[#023020] uppercase tracking-wider">Cash Book Statement</h3>
-                <p className="text-xs text-[#8aa89f]">Period: {fromDate || 'All'} to {toDate || 'Present'}</p>
+                <p className="text-xs text-[#8aa89f]">Period: {fromDate ? formatDate(fromDate) : 'The Beginning'} to {toDate ? formatDate(toDate) : 'Present'}</p>
               </div>
               <div className="flex items-center gap-4">
                 <button
@@ -282,7 +294,7 @@ export const Reports: React.FC = () => {
             <div className="flex justify-between items-center border-b pb-4">
               <div>
                 <h3 className="text-md font-bold text-[#023020] uppercase tracking-wider">Bank Book: {bankBookData.bank_name}</h3>
-                <p className="text-xs text-[#8aa89f]">Statement Period: {fromDate || 'All'} to {toDate || 'Present'}</p>
+                <p className="text-xs text-[#8aa89f]">Statement Period: {fromDate ? formatDate(fromDate) : 'The Beginning'} to {toDate ? formatDate(toDate) : 'Present'}</p>
               </div>
               <div className="flex items-center gap-4">
                 <button
@@ -377,7 +389,7 @@ export const Reports: React.FC = () => {
             <div className="flex justify-between items-center border-b pb-3 mb-1">
               <div>
                 <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider">Branch-wise Collections Today</h3>
-                <p className="text-xs text-[#8aa89f]">Period: {fromDate || 'All'} to {toDate || 'Present'}</p>
+                <p className="text-xs text-[#8aa89f]">Period: {fromDate ? formatDate(fromDate) : 'The Beginning'} to {toDate ? formatDate(toDate) : 'Present'}</p>
               </div>
               <button
                 onClick={handlePrint}
@@ -426,7 +438,7 @@ export const Reports: React.FC = () => {
             <div className="flex justify-between items-center border-b pb-3 mb-1">
               <div>
                 <h3 className="text-sm font-bold text-[#0d1f1a] uppercase tracking-wider">Branch-wise Payments Today</h3>
-                <p className="text-xs text-[#8aa89f]">Period: {fromDate || 'All'} to {toDate || 'Present'}</p>
+                <p className="text-xs text-[#8aa89f]">Period: {fromDate ? formatDate(fromDate) : 'The Beginning'} to {toDate ? formatDate(toDate) : 'Present'}</p>
               </div>
               <button
                 onClick={handlePrint}
@@ -475,7 +487,7 @@ export const Reports: React.FC = () => {
             <div className="flex justify-between items-center border-b pb-3">
               <div>
                 <h3 className="text-sm font-bold text-[#023020] uppercase tracking-wider">Company Cash Flow Statement</h3>
-                <p className="text-xs text-[#8aa89f]">Period: {fromDate || 'All'} to {toDate || 'Present'}</p>
+                <p className="text-xs text-[#8aa89f]">Period: {fromDate ? formatDate(fromDate) : 'The Beginning'} to {toDate ? formatDate(toDate) : 'Present'}</p>
               </div>
               <button
                 onClick={handlePrint}

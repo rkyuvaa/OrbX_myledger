@@ -5,6 +5,18 @@ import api from '../lib/api';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 
 export const Ledger: React.FC = () => {
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return `${parts[0]}-${parts[1]}-${parts[2]}`;
+    }
+    return dateStr;
+  };
+
   const [accountId, setAccountId] = useState<string>('');
   const [accountType, setAccountType] = useState<string>('bank');
   const [fromDate, setFromDate] = useState<string>('');
@@ -132,6 +144,9 @@ export const Ledger: React.FC = () => {
           <div className="hidden print:block text-center border-b pb-4 mb-6">
             <h1 className="text-2xl font-bold uppercase tracking-wider text-[#023020]">My Ledger</h1>
             <p className="text-xs text-[#8aa89f] tracking-widest mt-1">ACCOUNT STATEMENT</p>
+            <p className="text-[10px] text-[#4a6b62] font-semibold mt-2">
+              Period: {fromDate ? formatDate(fromDate) : 'The Beginning'} to {toDate ? formatDate(toDate) : 'Present'}
+            </p>
           </div>
 
           {/* Statement Account Info */}
@@ -207,6 +222,12 @@ export const Ledger: React.FC = () => {
                 </tr>
               </tbody>
             </table>
+          </div>
+          {/* Print Footer */}
+          <div className="print-footer hidden">
+            <span>My Ledger - Account Statement</span>
+            <span>Printed on: {new Date().toLocaleDateString('en-IN')}</span>
+            <span>Page <span className="print-footer-page"></span></span>
           </div>
         </div>
       ) : null}
