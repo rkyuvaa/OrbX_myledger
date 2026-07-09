@@ -1236,7 +1236,18 @@ export const Daybook: React.FC = () => {
                   entries.map((entry: any) => (
                     <tr key={entry.id} className={`${entry.credit > 0 ? 'bg-green-50/20' : 'bg-red-50/10'}`}>
                       <td className="text-center font-bold text-[#023020] uppercase select-all">
-                        {entry.voucher_number}
+                        {(() => {
+                          const parts = (entry.voucher_number || '').split('-');
+                          if (parts.length === 2) {
+                            return (
+                              <div>
+                                <div>{parts[0]}-</div>
+                                <div>{parts[1]}</div>
+                              </div>
+                            );
+                          }
+                          return entry.voucher_number;
+                        })()}
                       </td>
                       <td className="text-left">
                         <div className="font-semibold text-xs text-[#0d1f1a]">

@@ -393,8 +393,8 @@
   table.data-table td {
     border: 1px solid #444444 !important;
     padding: 4px 6px !important; /* Top/bottom 4px, Left/right 6px */
-    font-size: 8.5pt !important;  /* Body Text: 8.5pt */
-    line-height: 11pt !important;
+    font-size: 11px !important;  /* Body Text: 11px */
+    line-height: 14px !important;
     color: #000000 !important;
     background: transparent !important;
     vertical-align: top !important;
@@ -403,11 +403,11 @@
 
   /* Column-specific rules */
   /* Daybook Column-specific rules */
-  /* Voucher (Column 1): Never wrap, never truncate, never clip */
+  /* Voucher (Column 1): split on 2 lines, align center */
   table.daybook-table td:nth-child(1) {
-    white-space: nowrap !important;
+    white-space: normal !important;
+    text-align: center !important;
     overflow: visible !important;
-    text-overflow: clip !important;
   }
   
   /* Date Column: Date on first line, Time on second line in 7pt */
