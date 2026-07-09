@@ -1214,10 +1214,10 @@ export const Daybook: React.FC = () => {
             <table className="data-table daybook-table">
               <thead>
                 <tr>
-                  <th style={{ width: '14%' }} className="text-center font-bold">Voucher #</th>
+                  <th style={{ width: '10%' }} className="text-center font-bold">Voucher #</th>
                   <th style={{ width: '12%' }} className="text-left font-bold">Date</th>
-                  <th style={{ width: '18%' }} className="text-left font-bold">Branch</th>
-                  <th style={{ width: '36%' }} className="text-left font-bold">Particulars</th>
+                  <th style={{ width: '19%' }} className="text-left font-bold">Branch</th>
+                  <th style={{ width: '39%' }} className="text-left font-bold">Particulars</th>
                   <th style={{ width: '10%' }} className="text-center font-bold">Received<br />(CR)</th>
                   <th style={{ width: '10%' }} className="text-center font-bold">Paid<br />(DR)</th>
                   <th className="print:hidden text-left" style={{ width: '100px' }}>Reference</th>
@@ -1316,7 +1316,7 @@ export const Daybook: React.FC = () => {
               {entries.length > 0 && (
                 <tfoot className="border-t-2 border-[#023020] bg-gray-50/70 font-bold text-xs select-none">
                   <tr>
-                    <td colSpan={4} className="text-right pr-4 py-3 text-[#0d1f1a]">Total</td>
+                    <td colSpan={4} className="text-right pr-4 py-3 text-[#0d1f1a]">Total :</td>
                     <td className="text-green-700 py-3 whitespace-nowrap">{fmt(totalCredit)}</td>
                     <td className="text-red-700 py-3 whitespace-nowrap">{fmt(totalDebit)}</td>
                     <td colSpan={3} className="print:hidden"></td>

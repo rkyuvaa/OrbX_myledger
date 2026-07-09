@@ -439,24 +439,29 @@
   }
   
   /* Received & Paid Columns: nowrap, right-aligned, 8.5pt Bold, never truncate */
+  /* Received & Paid Columns: nowrap, right-aligned, 11px 600 weight, vertical middle, padding-right 8px */
   table.daybook-table td:nth-child(5),
   table.daybook-table td:nth-child(6) {
-    white-space: nowrap !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
     text-align: right !important;
-    font-weight: bold !important;
-    overflow: visible !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
     text-overflow: clip !important;
+    padding-right: 8px !important;
+    vertical-align: middle !important;
   }
 
-  /* Total Row styling for Daybook register */
+  /* Total Row styling for Daybook register: 11px 700 weight, border-top 2px, padding-right 8px */
   table.daybook-table tfoot tr td {
-    font-size: 9pt !important;
-    font-weight: bold !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
     border-top: 2px solid #2c3e50 !important;
     padding: 4px 6px !important;
+    padding-right: 8px !important;
     white-space: nowrap !important;
     color: #000000 !important;
-    overflow: visible !important;
+    vertical-align: middle !important;
   }
   table.daybook-table tfoot tr td:first-child {
     text-align: right !important;
@@ -487,12 +492,12 @@
     overflow: visible !important;
   }
 
-  /* Table headers rules: Keep on one line, 8.5pt Bold, never truncate */
+  /* Table headers rules: Keep on one line, 11px Bold, never wrap/overlap */
   table.data-table thead th {
     background: #f5f5f5 !important;
     font-weight: bold !important;
     text-transform: uppercase !important;
-    font-size: 8.5pt !important;
+    font-size: 11px !important;
     vertical-align: middle !important;
     text-align: left !important;
     white-space: nowrap !important;
