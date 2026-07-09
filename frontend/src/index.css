@@ -385,13 +385,12 @@
   table.data-table th, 
   table.data-table td {
     border: 1px solid #000000 !important;
-    padding: 5px 6px !important;
+    padding: 6px 8px !important;
     font-size: 10px !important;
     line-height: 14px !important;
     color: #000000 !important;
     background: transparent !important;
-    white-space: normal !important;
-    word-break: break-word !important;
+    white-space: nowrap !important;
   }
 
   table.data-table thead th {

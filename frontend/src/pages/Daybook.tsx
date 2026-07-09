@@ -1220,8 +1220,8 @@ export const Daybook: React.FC = () => {
                   <th>Particulars</th>
                   <th>Received (Cr)</th>
                   <th>Paid (Dr)</th>
-                  <th>Reference</th>
-                  <th>Reversed?</th>
+                  <th className="print:hidden">Reference</th>
+                  <th className="print:hidden">Reversed?</th>
                   <th className="text-right print:hidden">Actions</th>
                 </tr>
               </thead>
@@ -1272,10 +1272,10 @@ export const Daybook: React.FC = () => {
                       <td className="font-semibold text-red-600 whitespace-nowrap">
                         {entry.debit > 0 ? fmt(entry.debit) : '—'}
                       </td>
-                      <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px] text-xs text-[#4a6b62]" title={entry.reference_number || '—'}>
+                      <td className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px] text-xs text-[#4a6b62] print:hidden" title={entry.reference_number || '—'}>
                         {entry.reference_number || '—'}
                       </td>
-                      <td className="whitespace-nowrap">
+                      <td className="whitespace-nowrap print:hidden">
                         {entry.particulars.includes('REVERSAL') || entry.narration?.includes('REVERSAL') ? (
                           <span className="badge badge-red font-semibold text-[10px]">Reversal</span>
                         ) : (
@@ -1322,7 +1322,7 @@ export const Daybook: React.FC = () => {
                     <td colSpan={4} className="text-right pr-4 py-3 text-[#0d1f1a]">Total:</td>
                     <td className="text-green-700 py-3 whitespace-nowrap">{fmt(totalCredit)}</td>
                     <td className="text-red-700 py-3 whitespace-nowrap">{fmt(totalDebit)}</td>
-                    <td colSpan={3}></td>
+                    <td colSpan={3} className="print:hidden"></td>
                   </tr>
                 </tfoot>
               )}
