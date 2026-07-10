@@ -137,7 +137,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           <title>Print Voucher - ${e.voucher_number}</title>
           <style>
             @page {
-              size: A5 landscape;
+              size: A4 portrait;
               margin: 8mm;
             }
             body {
@@ -153,7 +153,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
               padding: 8mm;
               border-radius: 4px;
               box-sizing: border-box;
-              height: 100%;
+              height: 132mm;
               display: flex;
               flex-direction: column;
               justify-content: space-between;
@@ -329,7 +329,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           <title>Print Voucher - ${e.voucher_number}</title>
           <style>
             @page {
-              size: A5 landscape;
+              size: A4 portrait;
               margin: 8mm;
             }
             body {
@@ -345,7 +345,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
               padding: 8mm;
               border-radius: 4px;
               box-sizing: border-box;
-              height: 100%;
+              height: 132mm;
               display: flex;
               flex-direction: column;
               justify-content: space-between;
@@ -521,7 +521,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           <title>Print Voucher - ${e.voucher_number}</title>
           <style>
             @page {
-              size: A5 landscape;
+              size: A4 portrait;
               margin: 8mm;
             }
             body {
@@ -537,7 +537,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
               padding: 8mm;
               border-radius: 4px;
               box-sizing: border-box;
-              height: 100%;
+              height: 132mm;
               display: flex;
               flex-direction: column;
               justify-content: space-between;
@@ -713,7 +713,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
               <title>Print Voucher - ${i.voucher_number}</title>
               <style>
                 @page {
-                  size: A5 landscape;
+                  size: A4 portrait;
                   margin: 8mm;
                 }
                 body {
@@ -729,7 +729,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
                   padding: 8mm;
                   border-radius: 4px;
                   box-sizing: border-box;
-                  height: 100%;
+                  height: 132mm;
                   display: flex;
                   flex-direction: column;
                   justify-content: space-between;
@@ -905,7 +905,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
               <title>Print Voucher - ${i.voucher_number}</title>
               <style>
                 @page {
-                  size: A5 landscape;
+                  size: A4 portrait;
                   margin: 8mm;
                 }
                 body {
@@ -921,7 +921,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
                   padding: 8mm;
                   border-radius: 4px;
                   box-sizing: border-box;
-                  height: 100%;
+                  height: 132mm;
                   display: flex;
                   flex-direction: column;
                   justify-content: space-between;
@@ -1097,7 +1097,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
               <title>Print Voucher - ${i.voucher_number}</title>
               <style>
                 @page {
-                  size: A5 landscape;
+                  size: A4 portrait;
                   margin: 8mm;
                 }
                 body {
@@ -1113,7 +1113,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
                   padding: 8mm;
                   border-radius: 4px;
                   box-sizing: border-box;
-                  height: 100%;
+                  height: 132mm;
                   display: flex;
                   flex-direction: column;
                   justify-content: space-between;
@@ -1289,7 +1289,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
               <title>Print Voucher - ${i.voucher_number}</title>
               <style>
                 @page {
-                  size: A5 landscape;
+                  size: A4 portrait;
                   margin: 8mm;
                 }
                 body {
@@ -1305,7 +1305,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
                   padding: 8mm;
                   border-radius: 4px;
                   box-sizing: border-box;
-                  height: 100%;
+                  height: 132mm;
                   display: flex;
                   flex-direction: column;
                   justify-content: space-between;
