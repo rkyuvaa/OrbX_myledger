@@ -393,68 +393,94 @@
   table.data-table td {
     border: 1px solid #444444 !important;
     padding: 4px 6px !important; /* Top/bottom 4px, Left/right 6px */
-    font-size: 11px !important;  /* Body Text: 11px */
-    line-height: 14px !important;
+    font-size: 10px !important;  /* Base font size: 10px */
+    line-height: 12px !important; /* Reduced line-height */
     color: #000000 !important;
     background: transparent !important;
-    vertical-align: top !important;
-    overflow: hidden !important;
+    vertical-align: middle !important; /* Vertically centered */
+    overflow: visible !important; /* Prevent text clipping or overlapping */
   }
 
   /* Column-specific rules */
   /* Daybook Column-specific rules */
-  /* Voucher (Column 1): split on 2 lines, align center */
+  /* Voucher (Column 1): split on 2 lines, align center, 10px, Bold */
   table.daybook-table td:nth-child(1) {
     white-space: normal !important;
     text-align: center !important;
     overflow: visible !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 11px !important;
+  }
+  table.daybook-table td:nth-child(1) div {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 11px !important;
   }
   
-  /* Date Column: Date on first line, Time on second line in 7pt */
+  /* Date Column: Date on first line (10px, Semi-bold), Time on second line (8px, light gray) */
   table.daybook-table td:nth-child(2) {
     white-space: nowrap !important;
+    vertical-align: middle !important;
+  }
+  table.daybook-table td:nth-child(2) div:nth-child(1) {
+    font-size: 10px !important;
+    font-weight: 600 !important;
   }
   table.daybook-table td:nth-child(2) div:nth-child(2) {
-    font-size: 7pt !important;
-    line-height: 9pt !important;
+    font-size: 8px !important;
+    line-height: 10px !important;
+    color: #888888 !important;
+    font-weight: normal !important;
+    margin-top: 2px !important;
   }
   
-  /* Branch Column: wrap only inside Branch column */
+  /* Branch Column: wrap only inside Branch column, 10px, Medium (500) */
   table.daybook-table td:nth-child(3) {
     white-space: normal !important;
     word-break: break-word !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+  }
+  table.daybook-table td:nth-child(3) span {
+    font-size: 10px !important;
+    font-weight: 500 !important;
   }
   
-  /* Particulars Column: wrap naturally, narration/description in 7pt Italic */
+  /* Particulars Column: wrap naturally, main title (10px, Bold), narration/description (8px, Italic, gray) */
   table.daybook-table td:nth-child(4) {
     white-space: normal !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
+    vertical-align: middle !important;
+  }
+  table.daybook-table td:nth-child(4) div:nth-child(1) {
+    font-size: 10px !important;
+    font-weight: 700 !important;
   }
   table.daybook-table td:nth-child(4) div:nth-child(2) {
-    font-size: 7pt !important;
+    font-size: 8px !important;
     font-style: italic !important;
-    color: #555555 !important;
-    line-height: 9pt !important;
+    color: #666666 !important;
+    line-height: 10px !important;
+    margin-top: 2px !important;
   }
   
-  /* Received & Paid Columns: nowrap, right-aligned, 8.5pt Bold, never truncate */
-  /* Received & Paid Columns: nowrap, right-aligned, 11px 600 weight, vertical middle, padding-right 8px */
+  /* Received & Paid Columns: nowrap, right-aligned, 10px, Bold (700), vertical middle, padding-right 8px */
   table.daybook-table td:nth-child(5),
   table.daybook-table td:nth-child(6) {
-    font-size: 11px !important;
-    font-weight: 600 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
     text-align: right !important;
     white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: clip !important;
+    overflow: visible !important;
     padding-right: 8px !important;
     vertical-align: middle !important;
   }
 
-  /* Total Row styling for Daybook register: 11px 700 weight, border-top 2px, padding-right 8px */
+  /* Total Row styling for Daybook register: 10px, Bold (700), border-top 2px, padding-right 8px */
   table.daybook-table tfoot tr td {
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 700 !important;
     border-top: 2px solid #2c3e50 !important;
     padding: 4px 6px !important;
@@ -474,15 +500,21 @@
   /* Ledger Column-specific rules */
   table.ledger-table td:nth-child(1) {
     white-space: nowrap !important; /* Date */
+    font-size: 10px !important;
+    font-weight: 600 !important;
   }
   table.ledger-table td:nth-child(2) {
     white-space: nowrap !important; /* Voucher # */
     text-overflow: ellipsis !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
   }
   table.ledger-table td:nth-child(3) {
     white-space: normal !important; /* Particulars / Description */
     word-wrap: break-word !important;
     word-break: break-word !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
   }
   table.ledger-table td:nth-child(4),
   table.ledger-table td:nth-child(5),
@@ -490,14 +522,37 @@
     white-space: nowrap !important; /* Received, Paid, Balance */
     text-align: right !important;
     overflow: visible !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
   }
 
-  /* Table headers rules: Keep on one line, 11px Bold, never wrap/overlap */
+  /* Generic Rules for Bold/Right cells (Voucher, Amount, etc.) */
+  table.data-table td.font-bold,
+  table.data-table td .font-bold {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+  }
+  table.data-table td.text-right,
+  table.data-table td[class*="text-right"] {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    text-align: right !important;
+  }
+
+  /* Total rows styling for any report tables: 10px, Bold (700) */
+  table.data-table tfoot tr td,
+  table.data-table tr.font-semibold td,
+  table.data-table tbody tr:last-child.font-semibold td {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+  }
+
+  /* Table headers rules: Keep on one line, 10px Bold (700), never wrap/overlap */
   table.data-table thead th {
     background: #f5f5f5 !important;
-    font-weight: bold !important;
+    font-weight: 700 !important;
     text-transform: uppercase !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     vertical-align: middle !important;
     text-align: left !important;
     white-space: nowrap !important;
