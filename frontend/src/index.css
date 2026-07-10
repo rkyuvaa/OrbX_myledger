@@ -303,6 +303,15 @@
   @page {
     size: A4 portrait;
     margin: 8mm;
+    margin-bottom: 12mm; /* Ensure space for the footer margin box */
+    
+    @bottom-right {
+      content: "Page " counter(page);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+      font-size: 9px !important;
+      font-weight: 500 !important;
+      color: #333333 !important;
+    }
   }
 
   /* Hide interactive/non-report elements */
@@ -603,7 +612,12 @@
   }
 
   .print-footer-page::after {
-    content: counter(page);
+    content: none !important; /* Disable the broken page counter in DOM */
+  }
+
+  /* Hide the DOM's "Page " text span so the native @page margin box is used instead */
+  .print-footer > span:last-child {
+    visibility: hidden !important;
   }
 
   /* Utility classes to hide currency symbol in printout only */
