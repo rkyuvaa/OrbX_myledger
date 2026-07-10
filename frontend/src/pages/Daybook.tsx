@@ -1066,6 +1066,19 @@ export const Daybook: React.FC = () => {
   const fmt = (val: number) => 
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
+  const fmtNoCurr = (val: number) => 
+    new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+
+  const renderAmount = (val: number, fallback = '—') => {
+    if (val === undefined || val === null || val === 0) return fallback;
+    return (
+      <>
+        <span className="print-hidden">{fmt(val)}</span>
+        <span className="print-only-inline">{fmtNoCurr(val)}</span>
+      </>
+    );
+  };
+
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-');
@@ -1216,12 +1229,12 @@ export const Daybook: React.FC = () => {
             <table className="data-table daybook-table">
               <thead>
                 <tr>
-                  <th style={{ width: '10%' }} className="text-center font-bold">Voucher #</th>
+                  <th style={{ width: '9%' }} className="text-center font-bold">Voucher #</th>
                   <th style={{ width: '12%' }} className="text-left font-bold">Date</th>
-                  <th style={{ width: '19%' }} className="text-left font-bold">Branch</th>
-                  <th style={{ width: '39%' }} className="text-left font-bold">Particulars</th>
-                  <th style={{ width: '10%' }} className="text-center font-bold">Received<br />(CR)</th>
-                  <th style={{ width: '10%' }} className="text-center font-bold">Paid<br />(DR)</th>
+                  <th style={{ width: '16%' }} className="text-left font-bold">Branch</th>
+                  <th style={{ width: '37%' }} className="text-left font-bold">Particulars</th>
+                  <th style={{ width: '13%' }} className="text-center font-bold">Received<br />(CR)</th>
+                  <th style={{ width: '13%' }} className="text-center font-bold">Paid<br />(DR)</th>
                   <th className="print:hidden text-left" style={{ width: '100px' }}>Reference</th>
                   <th className="print:hidden text-left" style={{ width: '80px' }}>Reversed?</th>
                   <th className="text-right print:hidden" style={{ width: '100px' }}>Actions</th>
@@ -1277,10 +1290,10 @@ export const Daybook: React.FC = () => {
                         )}
                       </td>
                       <td className="text-right font-semibold text-green-600">
-                        {entry.credit > 0 ? fmt(entry.credit) : '—'}
+                        {renderAmount(entry.credit)}
                       </td>
                       <td className="text-right font-semibold text-red-600">
-                        {entry.debit > 0 ? fmt(entry.debit) : '—'}
+                        {renderAmount(entry.debit)}
                       </td>
                       <td className="text-left text-xs text-[#4a6b62] print:hidden" title={entry.reference_number || '—'}>
                         {entry.reference_number || '—'}
@@ -1330,8 +1343,8 @@ export const Daybook: React.FC = () => {
                 <tfoot className="border-t-2 border-[#023020] bg-gray-50/70 font-bold text-xs select-none">
                   <tr>
                     <td colSpan={4} className="text-right pr-4 py-3 text-[#0d1f1a]">Total :</td>
-                    <td className="text-green-700 py-3 whitespace-nowrap">{fmt(totalCredit)}</td>
-                    <td className="text-red-700 py-3 whitespace-nowrap">{fmt(totalDebit)}</td>
+                    <td className="text-green-700 py-3 whitespace-nowrap">{renderAmount(totalCredit)}</td>
+                    <td className="text-red-700 py-3 whitespace-nowrap">{renderAmount(totalDebit)}</td>
                     <td colSpan={3} className="print:hidden"></td>
                   </tr>
                 </tfoot>

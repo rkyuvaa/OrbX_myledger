@@ -115,6 +115,19 @@ export const Reports: React.FC = () => {
   const fmt = (val: number) => 
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
+  const fmtNoCurr = (val: number) => 
+    new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+
+  const renderAmount = (val: number, fallback = '—') => {
+    if (val === undefined || val === null || val === 0) return fallback;
+    return (
+      <>
+        <span className="print-hidden">{fmt(val)}</span>
+        <span className="print-only-inline">{fmtNoCurr(val)}</span>
+      </>
+    );
+  };
+
   return (
     <div className="space-y-6">
 
@@ -237,7 +250,7 @@ export const Reports: React.FC = () => {
                             <td>{r.date}</td>
                             <td className="font-bold text-[#023020]">{r.voucher_number}</td>
                             <td className="text-xs">{r.received_from}</td>
-                            <td className="text-right font-semibold text-green-600">{fmt(r.amount)}</td>
+                            <td className="text-right font-semibold text-green-600">{renderAmount(r.amount)}</td>
                           </tr>
                         ))
                       )}
@@ -270,7 +283,7 @@ export const Reports: React.FC = () => {
                             <td>{p.date}</td>
                             <td className="font-bold text-[#023020]">{p.voucher_number}</td>
                             <td className="text-xs">{p.paid_to}</td>
-                            <td className="text-right font-semibold text-red-600">{fmt(p.amount)}</td>
+                            <td className="text-right font-semibold text-red-600">{renderAmount(p.amount)}</td>
                           </tr>
                         ))
                       )}
@@ -336,7 +349,7 @@ export const Reports: React.FC = () => {
                             <td>{r.date}</td>
                             <td className="font-bold text-[#023020]">{r.voucher_number}</td>
                             <td className="text-xs truncate max-w-[80px]" title={r.reference_number}>{r.reference_number}</td>
-                            <td className="text-right font-semibold text-green-600">{fmt(r.amount)}</td>
+                            <td className="text-right font-semibold text-green-600">{renderAmount(r.amount)}</td>
                           </tr>
                         ))
                       )}
@@ -369,7 +382,7 @@ export const Reports: React.FC = () => {
                             <td>{p.date}</td>
                             <td className="font-bold text-[#023020]">{p.voucher_number}</td>
                             <td className="text-xs truncate max-w-[80px]" title={p.reference_number}>{p.reference_number}</td>
-                            <td className="text-right font-semibold text-red-600">{fmt(p.amount)}</td>
+                            <td className="text-right font-semibold text-red-600">{renderAmount(p.amount)}</td>
                           </tr>
                         ))
                       )}
@@ -420,7 +433,7 @@ export const Reports: React.FC = () => {
                         <td className="font-bold text-[#023020]">{item.branch_code}</td>
                         <td className="font-medium">{item.branch_name}</td>
                         <td>{item.transaction_count}</td>
-                        <td className="text-right font-bold text-green-600">{fmt(item.total_collected)}</td>
+                        <td className="text-right font-bold text-green-600">{renderAmount(item.total_collected)}</td>
                       </tr>
                     ))
                   )}
@@ -469,7 +482,7 @@ export const Reports: React.FC = () => {
                         <td className="font-bold text-[#023020]">{item.branch_code}</td>
                         <td className="font-medium">{item.branch_name}</td>
                         <td>{item.transaction_count}</td>
-                        <td className="text-right font-bold text-red-600">{fmt(item.total_paid)}</td>
+                        <td className="text-right font-bold text-red-600">{renderAmount(item.total_paid)}</td>
                       </tr>
                     ))
                   )}

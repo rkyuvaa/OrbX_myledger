@@ -605,6 +605,19 @@
   .print-footer-page::after {
     content: counter(page);
   }
+
+  /* Utility classes to hide currency symbol in printout only */
+  .print-hidden {
+    display: none !important;
+  }
+  .print-only-inline {
+    display: inline !important;
+  }
+}
+
+/* Outside @media print, print-only-inline should be hidden */
+.print-only-inline {
+  display: none;
 }
 
 @keyframes highlight-pulse-emerald {

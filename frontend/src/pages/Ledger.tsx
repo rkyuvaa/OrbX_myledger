@@ -65,6 +65,19 @@ export const Ledger: React.FC = () => {
   const fmt = (val: number) => 
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
+  const fmtNoCurr = (val: number) => 
+    new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+
+  const renderAmount = (val: number, fallback = '—') => {
+    if (val === undefined || val === null || val === 0) return fallback;
+    return (
+      <>
+        <span className="print-hidden">{fmt(val)}</span>
+        <span className="print-only-inline">{fmtNoCurr(val)}</span>
+      </>
+    );
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -186,7 +199,7 @@ export const Ledger: React.FC = () => {
                   <td className="font-semibold text-xs text-[#8aa89f]" colSpan={3}>OPENING BALANCE RECORDED</td>
                   <td>—</td>
                   <td>—</td>
-                  <td className="font-bold text-right text-[#0d1f1a]">{fmt(statement.opening_balance)}</td>
+                  <td className="font-bold text-right text-[#0d1f1a]">{renderAmount(statement.opening_balance)}</td>
                 </tr>
 
                 {statement.entries.length === 0 ? (
@@ -202,12 +215,12 @@ export const Ledger: React.FC = () => {
                       <td className="font-bold text-[#023020]">{entry.voucher_number}</td>
                       <td className="text-xs font-semibold text-[#4a6b62]">{entry.description || '—'}</td>
                       <td className="font-medium text-green-600">
-                        {entry.credit > 0 ? fmt(entry.credit) : '—'}
+                        {renderAmount(entry.credit)}
                       </td>
                       <td className="font-medium text-red-600">
-                        {entry.debit > 0 ? fmt(entry.debit) : '—'}
+                        {renderAmount(entry.debit)}
                       </td>
-                      <td className="font-bold text-right text-[#0d1f1a]">{fmt(entry.running_balance)}</td>
+                      <td className="font-bold text-right text-[#0d1f1a]">{renderAmount(entry.running_balance)}</td>
                     </tr>
                   ))
                 )}
@@ -215,9 +228,9 @@ export const Ledger: React.FC = () => {
                 {/* Totals Summary Row */}
                 <tr className="bg-[#f8fafb]/80 border-t-2 border-[#e2e8e6] font-semibold">
                   <td colSpan={3} className="text-xs uppercase tracking-wider text-[#4a6b62] font-bold">Total Statement Summaries</td>
-                  <td className="text-green-700 font-bold">{fmt(statement.total_credit)}</td>
-                  <td className="text-red-700 font-bold">{fmt(statement.total_debit)}</td>
-                  <td className="text-right text-[#023020] font-extrabold">{fmt(statement.closing_balance)}</td>
+                  <td className="text-green-700 font-bold">{renderAmount(statement.total_credit)}</td>
+                  <td className="text-red-700 font-bold">{renderAmount(statement.total_debit)}</td>
+                  <td className="text-right text-[#023020] font-extrabold">{renderAmount(statement.closing_balance)}</td>
                 </tr>
               </tbody>
             </table>
