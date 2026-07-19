@@ -27,7 +27,12 @@ async def get_daybook(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Fetch daybook entries with optional filters. Returns chronological register."""
+    # Default to today's date if no date filters are specified (and not a search query)
+    if not from_date and not to_date:
+        if not search:
+            from_date = date.today()
+            to_date = date.today()
+
     # Date Range Validation
     if from_date and to_date:
         if from_date > to_date:

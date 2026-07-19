@@ -13,7 +13,7 @@ const getTodayStr = () => {
 };
 
 const isDateRangeInvalid = (from: string, to: string) => {
-  if (!from && !to) return null;
+  if (!from && !to) return 'Please select a date range (maximum 3 months)';
   if (!from || !to) return 'Both From Date and To Date must be specified';
   const f = new Date(from);
   const t = new Date(to);
