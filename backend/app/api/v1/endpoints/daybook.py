@@ -66,7 +66,11 @@ async def get_daybook(
             | DaybookEntry.reference_number.ilike(f"%{search}%")
         )
 
-    q = q.offset(skip).limit(limit)
+    if from_date or to_date:
+        if skip:
+            q = q.offset(skip)
+    else:
+        q = q.offset(skip).limit(limit)
     result = await db.execute(q)
     entries = result.scalars().all()
 
