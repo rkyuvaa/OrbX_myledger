@@ -4,15 +4,42 @@ import { Search, RotateCcw, AlertCircle, Calendar, RefreshCw, Edit2, X, Printer,
 import api from '../lib/api';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 
+const getTodayStr = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const isDateRangeInvalid = (from: string, to: string) => {
+  if (!from && !to) return null;
+  if (!from || !to) return 'Both From Date and To Date must be specified';
+  const f = new Date(from);
+  const t = new Date(to);
+  if (isNaN(f.getTime()) || isNaN(t.getTime())) {
+    return 'Invalid date format';
+  }
+  if (f > t) return 'From Date cannot be after To Date';
+  const diffTime = t.getTime() - f.getTime();
+  const diffDays = diffTime / (1000 * 60 * 60 * 24);
+  if (diffDays > 92) {
+    return 'Date range cannot exceed 3 months (92 days)';
+  }
+  return null;
+};
+
 export const Daybook: React.FC = () => {
   const queryClient = useQueryClient();
-  const [fromDate, setFromDate] = useState<string>('');
-  const [toDate, setToDate] = useState<string>('');
+  const [fromDate, setFromDate] = useState<string>(getTodayStr());
+  const [toDate, setToDate] = useState<string>(getTodayStr());
   const [branchId, setBranchId] = useState<string>('');
   const [voucherType, setVoucherType] = useState<string>('');
   const [paymentMode, setPaymentMode] = useState<string>('');
   const [search, setSearch] = useState<string>('');
   const [reversalError, setReversalError] = useState<string | null>(null);
+
+  const dateValidationError = isDateRangeInvalid(fromDate, toDate);
 
   // Fetch branches for filter
   const { data: branches = [] } = useQuery({
@@ -27,6 +54,9 @@ export const Daybook: React.FC = () => {
   const { data: entries = [], isLoading, refetch } = useQuery({
     queryKey: ['daybook', fromDate, toDate, branchId, voucherType, paymentMode, search],
     queryFn: async () => {
+      if (dateValidationError) {
+        throw new Error(dateValidationError);
+      }
       const res = await api.get('/daybook/', {
         params: {
           from_date: fromDate || undefined,
@@ -39,6 +69,7 @@ export const Daybook: React.FC = () => {
       });
       return res.data;
     },
+    enabled: !dateValidationError,
   });
 
   const totalCredit = entries.reduce((sum: number, entry: any) => sum + (entry.credit || 0), 0);
@@ -1105,6 +1136,13 @@ export const Daybook: React.FC = () => {
         </div>
       )}
 
+      {dateValidationError && (
+        <div className="p-4 bg-amber-50 text-amber-800 rounded-xl flex items-start gap-2 text-sm border border-amber-100 print:hidden">
+          <AlertCircle className="w-5 h-5 shrink-0 text-amber-600" />
+          <span>{dateValidationError}</span>
+        </div>
+      )}
+
       {/* Advanced Filters Card */}
       <div className="card bg-white p-5 border border-[#e2e8e6] shadow-xs space-y-4 print:hidden">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
@@ -1184,8 +1222,8 @@ export const Daybook: React.FC = () => {
           </div>
           <button 
             onClick={() => {
-              setFromDate('');
-              setToDate('');
+              setFromDate(getTodayStr());
+              setToDate(getTodayStr());
               setBranchId('');
               setVoucherType('');
               setPaymentMode('');
@@ -1241,7 +1279,13 @@ export const Daybook: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {entries.length === 0 ? (
+                {dateValidationError ? (
+                  <tr>
+                    <td colSpan={9} className="text-center py-12 text-sm text-amber-700 bg-amber-50/20 font-semibold">
+                      {dateValidationError}
+                    </td>
+                  </tr>
+                ) : entries.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="text-center py-12 text-sm text-[#8aa89f]">
                       No transactions match the filter criteria.

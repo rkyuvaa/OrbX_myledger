@@ -1,6 +1,6 @@
 from typing import List, Optional
-from datetime import date
-from fastapi import APIRouter, Depends, Query
+from datetime import date, timedelta
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -28,6 +28,18 @@ async def get_daybook(
     current_user: User = Depends(get_current_user),
 ):
     """Fetch daybook entries with optional filters. Returns chronological register."""
+    # Date Range Validation
+    if from_date and to_date:
+        if from_date > to_date:
+            raise HTTPException(status_code=400, detail="from_date cannot be after to_date")
+        if (to_date - from_date) > timedelta(days=92):
+            raise HTTPException(status_code=400, detail="Date range cannot exceed 3 months (92 days)")
+    elif from_date:
+        if (date.today() - from_date) > timedelta(days=92):
+            raise HTTPException(status_code=400, detail="Date range cannot exceed 3 months (92 days)")
+    elif to_date:
+        raise HTTPException(status_code=400, detail="from_date is required when to_date is specified")
+
     q = select(DaybookEntry).order_by(DaybookEntry.date.desc(), DaybookEntry.created_at.desc())
 
     if from_date:
