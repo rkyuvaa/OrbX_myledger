@@ -527,7 +527,6 @@ export const Pay: React.FC = () => {
                   value={valDate} 
                   onChange={(e) => {
                     setValDate(e.target.value);
-                    setTimeout(() => setStep(2), 250);
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
