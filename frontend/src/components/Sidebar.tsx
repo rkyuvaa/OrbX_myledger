@@ -37,20 +37,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     }`}>
       <div>
         {/* Brand / Logo header */}
-        <div className="flex items-start justify-between pt-[10px] px-3.5 pb-6 mb-6 border-b border-white/10">
-          <div className="flex flex-col">
+        <div className="flex items-center justify-between pt-[10px] px-3.5 pb-6 mb-6 border-b border-white/10">
+          <div className="flex items-center gap-2.5">
             <img 
               src={logoDark} 
               alt="OrbX Logo" 
-              className="w-[96px] h-auto object-contain block" 
+              className="w-[90px] h-auto object-contain block" 
             />
-            <h1 className="text-[15px] font-bold tracking-wider text-white uppercase mt-2.5 leading-none">
-              MY LEDGER
-            </h1>
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide border border-[#22c55e]/40 text-[#22c55e] bg-[#0c3524]/90 shadow-sm whitespace-nowrap">
+              My Ledger
+            </span>
           </div>
           <button 
             onClick={onClose}
-            className="p-1 rounded-lg text-white/70 hover:bg-white/10 md:hidden cursor-pointer -mt-1"
+            className="p-1 rounded-lg text-white/70 hover:bg-white/10 md:hidden cursor-pointer"
             aria-label="Close sidebar"
           >
             <X className="w-6 h-6" />
