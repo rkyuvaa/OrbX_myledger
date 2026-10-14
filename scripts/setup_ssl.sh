@@ -44,7 +44,7 @@ if [ ! -f "$CERT_PATH" ]; then
 fi
 
 echo -e "\n${GREEN}Applying SSL configuration to Nginx (Port 8070)...${NC}"
-docker compose -f docker-compose.yml -f docker-compose.ssl.yml up -d nginx
+docker compose up -d --force-recreate nginx
 
 echo -e "\n${GREEN}====================================================${NC}"
 echo -e "${GREEN}   SSL SUCCESSFULLY ENABLED!                        ${NC}"
