@@ -7,9 +7,9 @@ import axios from 'axios';
 import { User, Lock, Eye, EyeOff, Check, Moon, ExternalLink, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
-// Import official SVGs so Vite hashes URLs to completely prevent browser caching issues
-import logoLight from '../assets/logo-light.svg';
+// Official vector SVGs (logoDark = white text for dark bg; logoLight = dark text for white card)
 import logoDark from '../assets/logo-dark.svg';
+import logoLight from '../assets/logo-light.svg';
 
 const loginSchema = zod.object({
   username: zod.string().min(1, 'Please enter your username or email'),
@@ -81,111 +81,119 @@ export const Login: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0b291d] flex flex-col justify-between p-6 sm:p-10 lg:px-16 lg:py-12 relative overflow-x-hidden selection:bg-[#22c55e] selection:text-white">
-      {/* Top right Theme toggle */}
-      <div className="absolute top-6 right-6 sm:top-8 sm:right-8 z-20">
-        <button
-          type="button"
-          className="w-9 h-9 rounded-full bg-[#113827] border border-white/10 flex items-center justify-center text-white/80 hover:text-white transition-all shadow-md cursor-pointer"
-          aria-label="Toggle theme"
-        >
-          <Moon className="w-4 h-4 fill-white/80" />
-        </button>
-      </div>
-
-      {/* Main Container */}
-      <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-14 my-auto pt-4 pb-4">
-        {/* Left Side: Branding and Value Props */}
-        <div className="w-full lg:w-[54%] max-w-xl text-left">
-          {/* Logo with ERP badge - White text on dark background */}
-          <div className="flex items-center gap-3">
+    <div className="w-full min-h-screen min-h-[100dvh] bg-[#0b291d] flex flex-col lg:flex-row overflow-x-hidden relative selection:bg-[#22c55e] selection:text-white">
+      {/* ─────────────────────────────────────────────────────────────
+          LEFT PANEL: 55% width on desktop, full-height, branded
+          Positioned 5% from left, ~13-15% from top
+          ───────────────────────────────────────────────────────────── */}
+      <div className="w-full lg:w-[55%] flex flex-col justify-between p-6 sm:p-12 lg:pl-[5%] lg:pr-12 lg:pt-[14vh] lg:pb-8 border-b lg:border-b-0 lg:border-r border-white/10 relative z-10">
+        <div className="max-w-[640px]">
+          {/* Logo with ERP badge */}
+          <div className="flex items-center gap-3.5">
             <img
               src={logoDark}
               alt="OrbX Logo"
-              className="h-10 sm:h-11 w-auto object-contain"
+              className="h-12 sm:h-14 lg:h-[62px] w-auto object-contain"
             />
-            <span className="px-2 py-0.5 rounded text-[11px] font-bold tracking-wider uppercase border border-[#22c55e]/40 text-[#22c55e] bg-[#0c3524]/80">
+            <span className="px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold tracking-wider uppercase border border-[#22c55e]/40 text-[#22c55e] bg-[#0c3524]/90 shadow-sm">
               ERP
             </span>
           </div>
 
           {/* Subheading Tagline */}
-          <p className="text-[11px] sm:text-xs font-bold tracking-[0.18em] text-[#22c55e] uppercase mt-8 sm:mt-10 mb-3">
+          <p className="text-xs sm:text-[13px] font-bold tracking-[0.2em] text-[#22c55e] uppercase mt-10 sm:mt-12 lg:mt-14 mb-4">
             WHERE BUSINESS MEETS INTELLIGENCE
           </p>
 
-          {/* Main Headline - exact 2-line clean wrap matching reference image */}
-          <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-extrabold text-white leading-[1.25] tracking-tight mb-7">
+          {/* Main Headline - exact clean 2-line wrap */}
+          <h1 className="text-3xl sm:text-4xl lg:text-[42px] xl:text-[46px] font-extrabold text-white leading-[1.18] tracking-tight mb-8 sm:mb-10 max-w-[620px]">
             Run your entire enterprise on one<br className="hidden sm:inline" /> intelligent platform.
           </h1>
 
           {/* Feature List */}
-          <ul className="space-y-3 mb-10">
+          <ul className="space-y-4 mb-10 lg:mb-14">
             {featureList.map((feature, idx) => (
-              <li key={idx} className="flex items-center gap-3 text-white/90 text-sm sm:text-[14px] font-medium">
-                <div className="w-[18px] h-[18px] rounded-full bg-[#113d2c] border border-[#22c55e]/50 flex items-center justify-center text-[#22c55e] shrink-0">
-                  <Check className="w-3 h-3 stroke-[2.5]" />
+              <li key={idx} className="flex items-center gap-3.5 text-white/95 text-sm sm:text-base font-medium">
+                <div className="w-5 h-5 rounded-full bg-[#113d2c] border border-[#22c55e]/50 flex items-center justify-center text-[#22c55e] shrink-0 shadow-sm">
+                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <span>{feature}</span>
               </li>
             ))}
           </ul>
-
-          {/* Bottom Left Link */}
-          <div className="flex items-center gap-2 text-xs text-white/60">
-            <a
-              href="https://orbx.in"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1 text-white/80 hover:text-white transition-colors"
-            >
-              <span>orbx.in</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-            <span className="text-white/30">•</span>
-            <span className="text-white/60">Where Business Meets Intelligence</span>
-          </div>
         </div>
 
-        {/* Right Side: Login Card */}
-        <div className="w-full lg:w-[46%] flex flex-col items-center justify-center">
-          <div className="w-full max-w-[400px] bg-white rounded-[24px] shadow-2xl p-7 sm:p-9 flex flex-col items-center">
-            {/* Logo inside card - Dark text on white card background */}
+        {/* Bottom Left Footer */}
+        <div className="flex items-center gap-2 text-xs sm:text-[13px] text-white/60 pt-6">
+          <a
+            href="https://orbx.in"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1 text-white/80 hover:text-white transition-colors"
+          >
+            <span>orbx.in</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+          <span className="text-white/30">•</span>
+          <span className="text-white/60">Where Business Meets Intelligence</span>
+        </div>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          RIGHT PANEL: 45% width on desktop, perfectly centered card
+          Targeting ~510px width x 490px height
+          ───────────────────────────────────────────────────────────── */}
+      <div className="w-full lg:w-[45%] flex flex-col justify-between items-center p-6 sm:p-10 lg:p-8 relative min-h-full z-10">
+        {/* Top-Right Theme toggle */}
+        <div className="w-full flex justify-end lg:absolute lg:top-8 lg:right-8 z-20 mb-6 lg:mb-0">
+          <button
+            type="button"
+            className="w-10 h-10 rounded-full bg-[#113827] border border-white/10 flex items-center justify-center text-white/80 hover:text-white transition-all shadow-md cursor-pointer"
+            aria-label="Toggle theme"
+          >
+            <Moon className="w-4 h-4 fill-white/80" />
+          </button>
+        </div>
+
+        {/* Centered Login Card Container */}
+        <div className="w-full flex-1 flex flex-col items-center justify-center py-4 lg:py-6">
+          <div className="w-full max-w-[510px] min-h-[480px] sm:min-h-[490px] bg-white rounded-[28px] sm:rounded-[32px] shadow-2xl p-8 sm:p-12 flex flex-col items-center justify-center">
+            {/* Logo inside card - Dark text for white card */}
             <img
               src={logoLight}
               alt="OrbX"
-              className="h-9 sm:h-10 w-auto object-contain mb-2"
+              className="h-10 sm:h-12 w-auto object-contain mb-2"
             />
 
-            <p className="text-xs text-gray-700 font-medium tracking-normal mb-5 text-center">
+            <p className="text-xs sm:text-sm font-semibold text-gray-700 tracking-normal mb-6 text-center">
               Enterprise Resource Planning Suite
             </p>
 
-            <h2 className="text-lg font-bold text-gray-900 mb-1 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 text-center">
               Welcome back
             </h2>
-            <p className="text-xs text-gray-500 mb-5 text-center">
+            <p className="text-xs sm:text-sm text-gray-500 mb-6 text-center">
               Sign in to your account to continue
             </p>
 
             {serverError && (
-              <div className="w-full mb-3 p-2.5 bg-red-50 text-red-700 rounded-lg flex items-start gap-2 text-xs border border-red-100">
+              <div className="w-full mb-4 p-3 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-xs border border-red-100">
                 <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                 <span>{serverError}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-3.5">
+            <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                   Username
                 </label>
                 <div className="relative flex items-center rounded-xl bg-[#f3f4f6] border border-transparent focus-within:border-[#22c55e] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#22c55e]/10 transition-all">
-                  <User className="absolute left-3 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <User className="absolute left-4 w-4 h-4 text-gray-400 pointer-events-none" />
                   <input
                     type="text"
                     placeholder=""
-                    className="w-full pl-9 pr-3 py-2.5 bg-transparent text-sm text-gray-900 focus:outline-none"
+                    className="w-full pl-11 pr-4 py-3 sm:py-3.5 bg-transparent text-sm text-gray-900 focus:outline-none"
                     {...register('username')}
                   />
                 </div>
@@ -195,21 +203,21 @@ export const Login: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                   Password
                 </label>
                 <div className="relative flex items-center rounded-xl bg-[#f3f4f6] border border-transparent focus-within:border-[#22c55e] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#22c55e]/10 transition-all">
-                  <Lock className="absolute left-3 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <Lock className="absolute left-4 w-4 h-4 text-gray-400 pointer-events-none" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder=""
-                    className="w-full pl-9 pr-9 py-2.5 bg-transparent text-sm text-gray-900 focus:outline-none"
+                    className="w-full pl-11 pr-11 py-3 sm:py-3.5 bg-transparent text-sm text-gray-900 focus:outline-none"
                     {...register('password')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                    className="absolute right-4 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -223,7 +231,7 @@ export const Login: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 px-4 mt-5 rounded-xl bg-[#00c067] hover:bg-[#00ad5c] active:scale-[0.99] text-white font-bold text-sm tracking-wide transition-all shadow-md shadow-[#00c067]/20 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 sm:py-4 px-4 mt-6 rounded-2xl bg-[#00c067] hover:bg-[#00ad5c] active:scale-[0.99] text-white font-bold text-base tracking-wide transition-all shadow-lg shadow-[#00c067]/25 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -233,25 +241,25 @@ export const Login: React.FC = () => {
               </button>
             </form>
           </div>
+        </div>
 
-          {/* Footer below Card */}
-          <div className="flex items-center justify-center gap-5 mt-6 text-xs text-white/50">
-            <a
-              href="https://orbx.in"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1 hover:text-white transition-colors"
-            >
-              <span>orbx.in</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              Privacy
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              Terms
-            </a>
-          </div>
+        {/* Bottom Right Footer */}
+        <div className="w-full pb-8 pt-4 text-xs text-white/50 flex items-center justify-center gap-6">
+          <a
+            href="https://orbx.in"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1 hover:text-white transition-colors"
+          >
+            <span>orbx.in</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+          <a href="#" className="hover:text-white transition-colors">
+            Privacy
+          </a>
+          <a href="#" className="hover:text-white transition-colors">
+            Terms
+          </a>
         </div>
       </div>
     </div>
