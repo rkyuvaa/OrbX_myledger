@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  nginx:
+    ports:
+      - "${NGINX_PORT:-8070}:443"
+    volumes:
+      - ./nginx/nginx-ssl.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
