@@ -37,7 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     }`}>
       <div>
         {/* Brand / Logo header */}
-        <div className="flex items-start justify-between pt-[42px] px-3.5 pb-6 mb-6 border-b border-white/10">
+        <div className="flex items-start justify-between pt-[10px] px-3.5 pb-6 mb-6 border-b border-white/10">
           <div className="flex flex-col">
             <img 
               src={logoDark} 
