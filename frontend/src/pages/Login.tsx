@@ -7,6 +7,10 @@ import axios from 'axios';
 import { User, Lock, Eye, EyeOff, Check, Moon, ExternalLink, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
+// Import official SVGs so Vite hashes URLs to completely prevent browser caching issues
+import logoLight from '../assets/logo-light.svg';
+import logoDark from '../assets/logo-dark.svg';
+
 const loginSchema = zod.object({
   username: zod.string().min(1, 'Please enter your username or email'),
   password: zod.string().min(1, 'Please enter your password'),
@@ -90,13 +94,13 @@ export const Login: React.FC = () => {
       </div>
 
       {/* Main Container */}
-      <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16 my-auto pt-4 pb-4">
+      <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-14 my-auto pt-4 pb-4">
         {/* Left Side: Branding and Value Props */}
         <div className="w-full lg:w-[54%] max-w-xl text-left">
-          {/* Logo with ERP badge */}
+          {/* Logo with ERP badge - Uses logoLight (white text on dark background) */}
           <div className="flex items-center gap-3">
             <img
-              src="/logo-white.svg"
+              src={logoLight}
               alt="OrbX Logo"
               className="h-10 sm:h-11 w-auto object-contain"
             />
@@ -106,19 +110,19 @@ export const Login: React.FC = () => {
           </div>
 
           {/* Subheading Tagline */}
-          <p className="text-[11px] sm:text-xs font-bold tracking-[0.2em] text-[#22c55e] uppercase mt-10 sm:mt-12 mb-3">
+          <p className="text-[11px] sm:text-xs font-bold tracking-[0.18em] text-[#22c55e] uppercase mt-8 sm:mt-10 mb-3">
             WHERE BUSINESS MEETS INTELLIGENCE
           </p>
 
-          {/* Main Headline - exact 2-line wrap */}
-          <h1 className="text-2xl sm:text-3xl lg:text-[38px] font-extrabold text-white leading-[1.2] tracking-tight mb-7 max-w-lg">
-            Run your entire enterprise on one intelligent platform.
+          {/* Main Headline - exact 2-line clean wrap matching reference image */}
+          <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-extrabold text-white leading-[1.25] tracking-tight mb-7">
+            Run your entire enterprise on one<br className="hidden sm:inline" /> intelligent platform.
           </h1>
 
           {/* Feature List */}
-          <ul className="space-y-3.5 mb-12">
+          <ul className="space-y-3 mb-10">
             {featureList.map((feature, idx) => (
-              <li key={idx} className="flex items-center gap-3 text-white/90 text-sm sm:text-[15px] font-medium">
+              <li key={idx} className="flex items-center gap-3 text-white/90 text-sm sm:text-[14px] font-medium">
                 <div className="w-[18px] h-[18px] rounded-full bg-[#113d2c] border border-[#22c55e]/50 flex items-center justify-center text-[#22c55e] shrink-0">
                   <Check className="w-3 h-3 stroke-[2.5]" />
                 </div>
@@ -145,10 +149,10 @@ export const Login: React.FC = () => {
 
         {/* Right Side: Login Card */}
         <div className="w-full lg:w-[46%] flex flex-col items-center justify-center">
-          <div className="w-full max-w-[410px] bg-white rounded-[24px] shadow-2xl p-7 sm:p-9 flex flex-col items-center">
-            {/* Logo inside card - Dark text on white card */}
+          <div className="w-full max-w-[400px] bg-white rounded-[24px] shadow-2xl p-7 sm:p-9 flex flex-col items-center">
+            {/* Logo inside card - Uses logoDark (dark text on white card background) */}
             <img
-              src="/logo-dark.svg"
+              src={logoDark}
               alt="OrbX"
               className="h-9 sm:h-10 w-auto object-contain mb-2"
             />
