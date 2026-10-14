@@ -16,3 +16,10 @@ pgdata/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Migration Backups & DB Dumps
+migration_backup_*/
+orbx_migration_*.tar.gz*
+*.dump
+*.sql
+
