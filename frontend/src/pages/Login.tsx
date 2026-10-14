@@ -97,10 +97,10 @@ export const Login: React.FC = () => {
       <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-14 my-auto pt-4 pb-4">
         {/* Left Side: Branding and Value Props */}
         <div className="w-full lg:w-[54%] max-w-xl text-left">
-          {/* Logo with ERP badge - Uses logoLight (white text on dark background) */}
+          {/* Logo with ERP badge - White text on dark background */}
           <div className="flex items-center gap-3">
             <img
-              src={logoLight}
+              src={logoDark}
               alt="OrbX Logo"
               className="h-10 sm:h-11 w-auto object-contain"
             />
@@ -150,9 +150,9 @@ export const Login: React.FC = () => {
         {/* Right Side: Login Card */}
         <div className="w-full lg:w-[46%] flex flex-col items-center justify-center">
           <div className="w-full max-w-[400px] bg-white rounded-[24px] shadow-2xl p-7 sm:p-9 flex flex-col items-center">
-            {/* Logo inside card - Uses logoDark (dark text on white card background) */}
+            {/* Logo inside card - Dark text on white card background */}
             <img
-              src={logoDark}
+              src={logoLight}
               alt="OrbX"
               className="h-9 sm:h-10 w-auto object-contain mb-2"
             />
