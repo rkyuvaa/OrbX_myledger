@@ -32,25 +32,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   ];
 
   return (
-    <aside id="sidebar-nav" className={`print:hidden fixed md:sticky top-0 inset-y-0 left-0 w-60 h-screen bg-[#023020] text-white flex flex-col justify-between p-4 shadow-xl z-40 border-r border-[#011a12] transition-transform duration-300 ease-in-out ${
+    <aside id="sidebar-nav" className={`print:hidden fixed md:sticky top-0 inset-y-0 left-0 w-60 h-screen bg-[#023020] text-white flex flex-col justify-between px-4 pb-4 shadow-xl z-40 border-r border-[#011a12] transition-transform duration-300 ease-in-out ${
       isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
     }`}>
       <div>
-        {/* Brand/Logo header */}
-        <div className="flex items-start justify-between px-2 py-4 mb-6 border-b border-white/10">
-          <div className="flex flex-col gap-1.5">
+        {/* Brand / Logo header */}
+        <div className="flex items-start justify-between pt-[42px] px-3.5 pb-6 mb-6 border-b border-white/10">
+          <div className="flex flex-col">
             <img 
               src={logoDark} 
-              alt="OrbX" 
-              className="h-8 w-auto object-contain" 
+              alt="OrbX Logo" 
+              className="w-[96px] h-auto object-contain block" 
             />
-            <span className="text-xs font-bold tracking-wider text-white uppercase">
-              My Ledger
-            </span>
+            <h1 className="text-[15px] font-bold tracking-wider text-white uppercase mt-2.5 leading-none">
+              MY LEDGER
+            </h1>
           </div>
           <button 
             onClick={onClose}
-            className="p-1 rounded-lg text-white/70 hover:bg-white/10 md:hidden cursor-pointer"
+            className="p-1 rounded-lg text-white/70 hover:bg-white/10 md:hidden cursor-pointer -mt-1"
             aria-label="Close sidebar"
           >
             <X className="w-6 h-6" />
