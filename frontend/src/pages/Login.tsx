@@ -77,12 +77,12 @@ export const Login: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0b291d] flex flex-col justify-between p-6 sm:p-10 lg:p-16 relative overflow-x-hidden selection:bg-[#22c55e] selection:text-white">
+    <div className="min-h-screen bg-[#0b291d] flex flex-col justify-between p-6 sm:p-10 lg:px-16 lg:py-12 relative overflow-x-hidden selection:bg-[#22c55e] selection:text-white">
       {/* Top right Theme toggle */}
       <div className="absolute top-6 right-6 sm:top-8 sm:right-8 z-20">
         <button
           type="button"
-          className="w-10 h-10 rounded-full bg-[#113a29] border border-white/10 flex items-center justify-center text-white/80 hover:text-white transition-all shadow-md cursor-pointer"
+          className="w-9 h-9 rounded-full bg-[#113827] border border-white/10 flex items-center justify-center text-white/80 hover:text-white transition-all shadow-md cursor-pointer"
           aria-label="Toggle theme"
         >
           <Moon className="w-4 h-4 fill-white/80" />
@@ -90,37 +90,37 @@ export const Login: React.FC = () => {
       </div>
 
       {/* Main Container */}
-      <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 my-auto pt-6 pb-6">
+      <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16 my-auto pt-4 pb-4">
         {/* Left Side: Branding and Value Props */}
-        <div className="w-full lg:w-1/2 max-w-xl text-left">
+        <div className="w-full lg:w-[54%] max-w-xl text-left">
           {/* Logo with ERP badge */}
           <div className="flex items-center gap-3">
             <img
-              src="/logo-light.svg"
+              src="/logo-white.svg"
               alt="OrbX Logo"
-              className="h-10 sm:h-12 w-auto object-contain"
+              className="h-10 sm:h-11 w-auto object-contain"
             />
-            <span className="px-2.5 py-0.5 rounded text-[11px] font-bold tracking-wider uppercase border border-[#22c55e]/40 text-[#22c55e] bg-[#0c3524]/70">
+            <span className="px-2 py-0.5 rounded text-[11px] font-bold tracking-wider uppercase border border-[#22c55e]/40 text-[#22c55e] bg-[#0c3524]/80">
               ERP
             </span>
           </div>
 
           {/* Subheading Tagline */}
-          <p className="text-xs sm:text-[13px] font-bold tracking-[0.2em] text-[#22c55e] uppercase mt-12 sm:mt-16 mb-4">
+          <p className="text-[11px] sm:text-xs font-bold tracking-[0.2em] text-[#22c55e] uppercase mt-10 sm:mt-12 mb-3">
             WHERE BUSINESS MEETS INTELLIGENCE
           </p>
 
-          {/* Main Headline */}
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-[1.18] tracking-tight mb-8">
+          {/* Main Headline - exact 2-line wrap */}
+          <h1 className="text-2xl sm:text-3xl lg:text-[38px] font-extrabold text-white leading-[1.2] tracking-tight mb-7 max-w-lg">
             Run your entire enterprise on one intelligent platform.
           </h1>
 
           {/* Feature List */}
-          <ul className="space-y-4 mb-14">
+          <ul className="space-y-3.5 mb-12">
             {featureList.map((feature, idx) => (
-              <li key={idx} className="flex items-center gap-3.5 text-white/95 text-sm sm:text-base font-medium">
-                <div className="w-5 h-5 rounded-full bg-[#124230] border border-[#22c55e]/50 flex items-center justify-center text-[#22c55e] shrink-0 shadow-sm">
-                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+              <li key={idx} className="flex items-center gap-3 text-white/90 text-sm sm:text-[15px] font-medium">
+                <div className="w-[18px] h-[18px] rounded-full bg-[#113d2c] border border-[#22c55e]/50 flex items-center justify-center text-[#22c55e] shrink-0">
+                  <Check className="w-3 h-3 stroke-[2.5]" />
                 </div>
                 <span>{feature}</span>
               </li>
@@ -144,44 +144,44 @@ export const Login: React.FC = () => {
         </div>
 
         {/* Right Side: Login Card */}
-        <div className="w-full lg:w-1/2 flex flex-col items-center justify-center">
-          <div className="w-full max-w-[440px] bg-white rounded-[28px] shadow-2xl p-8 sm:p-10 flex flex-col items-center">
-            {/* Logo inside card */}
+        <div className="w-full lg:w-[46%] flex flex-col items-center justify-center">
+          <div className="w-full max-w-[410px] bg-white rounded-[24px] shadow-2xl p-7 sm:p-9 flex flex-col items-center">
+            {/* Logo inside card - Dark text on white card */}
             <img
               src="/logo-dark.svg"
               alt="OrbX"
-              className="h-10 sm:h-11 w-auto object-contain mb-2"
+              className="h-9 sm:h-10 w-auto object-contain mb-2"
             />
 
-            <p className="text-xs sm:text-[13px] font-semibold text-gray-800 tracking-normal mb-6 text-center">
+            <p className="text-xs text-gray-700 font-medium tracking-normal mb-5 text-center">
               Enterprise Resource Planning Suite
             </p>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-1 text-center">
+            <h2 className="text-lg font-bold text-gray-900 mb-1 text-center">
               Welcome back
             </h2>
-            <p className="text-xs text-gray-500 mb-6 text-center">
+            <p className="text-xs text-gray-500 mb-5 text-center">
               Sign in to your account to continue
             </p>
 
             {serverError && (
-              <div className="w-full mb-4 p-3 bg-red-50 text-red-700 rounded-xl flex items-start gap-2 text-xs border border-red-100">
+              <div className="w-full mb-3 p-2.5 bg-red-50 text-red-700 rounded-lg flex items-start gap-2 text-xs border border-red-100">
                 <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                 <span>{serverError}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Username
                 </label>
                 <div className="relative flex items-center rounded-xl bg-[#f3f4f6] border border-transparent focus-within:border-[#22c55e] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#22c55e]/10 transition-all">
-                  <User className="absolute left-3.5 w-4 h-4 text-gray-500 pointer-events-none" />
+                  <User className="absolute left-3 w-4 h-4 text-gray-400 pointer-events-none" />
                   <input
                     type="text"
                     placeholder=""
-                    className="w-full pl-10 pr-4 py-3 bg-transparent text-sm text-gray-900 focus:outline-none"
+                    className="w-full pl-9 pr-3 py-2.5 bg-transparent text-sm text-gray-900 focus:outline-none"
                     {...register('username')}
                   />
                 </div>
@@ -191,21 +191,21 @@ export const Login: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Password
                 </label>
                 <div className="relative flex items-center rounded-xl bg-[#f3f4f6] border border-transparent focus-within:border-[#22c55e] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#22c55e]/10 transition-all">
-                  <Lock className="absolute left-3.5 w-4 h-4 text-gray-500 pointer-events-none" />
+                  <Lock className="absolute left-3 w-4 h-4 text-gray-400 pointer-events-none" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder=""
-                    className="w-full pl-10 pr-10 py-3 bg-transparent text-sm text-gray-900 focus:outline-none"
+                    className="w-full pl-9 pr-9 py-2.5 bg-transparent text-sm text-gray-900 focus:outline-none"
                     {...register('password')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                    className="absolute right-3 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -219,7 +219,7 @@ export const Login: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 px-4 mt-6 rounded-2xl bg-[#00c067] hover:bg-[#00ad5c] active:scale-[0.99] text-white font-bold text-sm tracking-wide transition-all shadow-lg shadow-[#00c067]/25 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 mt-5 rounded-xl bg-[#00c067] hover:bg-[#00ad5c] active:scale-[0.99] text-white font-bold text-sm tracking-wide transition-all shadow-md shadow-[#00c067]/20 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -231,7 +231,7 @@ export const Login: React.FC = () => {
           </div>
 
           {/* Footer below Card */}
-          <div className="flex items-center justify-center gap-6 mt-8 text-xs text-white/60">
+          <div className="flex items-center justify-center gap-5 mt-6 text-xs text-white/50">
             <a
               href="https://orbx.in"
               target="_blank"
