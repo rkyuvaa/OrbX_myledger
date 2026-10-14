@@ -5,7 +5,7 @@ import {
   LogOut, X
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { AppLogo } from './AppLogo';
+import logoDark from '../assets/logo-dark.svg';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -36,16 +36,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
     }`}>
       <div>
-        {/* Brand/Logo logo with dark green gradient accent */}
-        <div className="flex items-center justify-between px-2 py-4 mb-6 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/10 rounded-lg text-emerald-400">
-              <AppLogo className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-md font-bold tracking-wider uppercase">My Ledger</h1>
-              <span className="text-[10px] text-[#8aa89f] tracking-widest font-semibold block">CASH & BANK MGT</span>
-            </div>
+        {/* Brand/Logo header */}
+        <div className="flex items-start justify-between px-2 py-4 mb-6 border-b border-white/10">
+          <div className="flex flex-col gap-1.5">
+            <img 
+              src={logoDark} 
+              alt="OrbX" 
+              className="h-8 w-auto object-contain" 
+            />
+            <span className="text-xs font-bold tracking-wider text-white uppercase">
+              My Ledger
+            </span>
           </div>
           <button 
             onClick={onClose}
