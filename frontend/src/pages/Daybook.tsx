@@ -45,7 +45,7 @@ export const Daybook: React.FC = () => {
   const { data: branches = [] } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
-      const res = await api.get('/branches');
+      const res = await api.get('/branches/');
       return res.data;
     },
   });

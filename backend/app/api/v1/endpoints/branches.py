@@ -12,6 +12,7 @@ from app.api.v1.endpoints.auth import get_current_user
 router = APIRouter(prefix="/branches", tags=["Branches"])
 
 
+@router.post("", include_in_schema=False, status_code=201)
 @router.post("/", response_model=BranchOut, status_code=201)
 async def create_branch(
     body: BranchCreate,
@@ -30,6 +31,7 @@ async def create_branch(
     return branch
 
 
+@router.get("", include_in_schema=False)
 @router.get("/", response_model=List[BranchOut])
 async def list_branches(
     db: AsyncSession = Depends(get_db),

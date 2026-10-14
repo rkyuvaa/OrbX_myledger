@@ -14,6 +14,7 @@ from app.api.v1.endpoints.auth import get_current_user
 router = APIRouter(prefix="/receipts", tags=["Receipts"])
 
 
+@router.post("", include_in_schema=False, status_code=201)
 @router.post("/", response_model=ReceiptOut, status_code=201)
 async def create_receipt(
     body: ReceiptCreate,
@@ -25,6 +26,7 @@ async def create_receipt(
     return await _enrich_receipt(db, voucher)
 
 
+@router.get("", include_in_schema=False)
 @router.get("/", response_model=List[ReceiptOut])
 async def list_receipts(
     from_date: Optional[date] = Query(None),

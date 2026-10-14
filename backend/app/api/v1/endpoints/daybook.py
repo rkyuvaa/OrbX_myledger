@@ -13,6 +13,7 @@ from app.api.v1.endpoints.auth import get_current_user
 router = APIRouter(prefix="/daybook", tags=["Daybook"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/", response_model=List[DaybookEntryOut])
 async def get_daybook(
     from_date: Optional[date] = Query(None),

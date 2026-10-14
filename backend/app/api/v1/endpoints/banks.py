@@ -17,6 +17,7 @@ router = APIRouter(prefix="/banks", tags=["Bank & Cash Accounts"])
 
 # ─── BANK ACCOUNTS ───
 
+@router.post("", include_in_schema=False, status_code=201)
 @router.post("/", response_model=BankAccountOut, status_code=201)
 async def create_bank(
     body: BankAccountCreate,
@@ -33,6 +34,7 @@ async def create_bank(
     return bank
 
 
+@router.get("", include_in_schema=False)
 @router.get("/", response_model=List[BankAccountOut])
 async def list_banks(
     db: AsyncSession = Depends(get_db),

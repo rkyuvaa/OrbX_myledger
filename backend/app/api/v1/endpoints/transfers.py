@@ -14,6 +14,7 @@ from app.api.v1.endpoints.auth import get_current_user
 router = APIRouter(prefix="/transfers", tags=["Fund Transfers"])
 
 
+@router.post("", include_in_schema=False, status_code=201)
 @router.post("/", response_model=FundTransferOut, status_code=201)
 async def create_transfer(
     body: FundTransferCreate,
@@ -24,6 +25,7 @@ async def create_transfer(
     return await _enrich_transfer(db, transfer)
 
 
+@router.get("", include_in_schema=False)
 @router.get("/", response_model=List[FundTransferOut])
 async def list_transfers(
     from_date: Optional[date] = Query(None),

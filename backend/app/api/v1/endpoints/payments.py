@@ -14,6 +14,7 @@ from app.api.v1.endpoints.auth import get_current_user
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
 
+@router.post("", include_in_schema=False, status_code=201)
 @router.post("/", response_model=PaymentOut, status_code=201)
 async def create_payment(
     body: PaymentCreate,
@@ -25,6 +26,7 @@ async def create_payment(
     return await _enrich_payment(db, voucher)
 
 
+@router.get("", include_in_schema=False)
 @router.get("/", response_model=List[PaymentOut])
 async def list_payments(
     from_date: Optional[date] = Query(None),

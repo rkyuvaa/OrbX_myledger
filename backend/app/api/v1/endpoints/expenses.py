@@ -14,6 +14,7 @@ from app.api.v1.endpoints.auth import get_current_user
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
 
+@router.post("", include_in_schema=False, status_code=201)
 @router.post("/", response_model=ExpenseOut, status_code=201)
 async def create_expense(
     body: ExpenseCreate,
@@ -25,6 +26,7 @@ async def create_expense(
     return await _enrich_expense(db, voucher)
 
 
+@router.get("", include_in_schema=False)
 @router.get("/", response_model=List[ExpenseOut])
 async def list_expenses(
     from_date: Optional[date] = Query(None),
