@@ -128,5 +128,6 @@ ORDER BY n_live_tup DESC;
 echo -e "\n${GREEN}====================================================${NC}"
 echo -e "${GREEN}   MIGRATION COMPLETED SUCCESSFULLY!                ${NC}"
 echo -e "${GREEN}====================================================${NC}"
-echo -e "Access your application at: http://<NEW_SERVER_IP>"
-echo -e "API Swagger documentation : http://<NEW_SERVER_IP>/docs"
+echo -e "Access your application at: http://51.77.117.66:8070"
+echo -e "API Swagger documentation : http://51.77.117.66:8070/docs"
+

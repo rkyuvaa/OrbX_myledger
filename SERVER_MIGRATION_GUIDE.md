@@ -122,7 +122,7 @@ sudo docker compose up --build -d
 ---
 
 ## ✅ Post-Migration Verification
-1. Open your browser at `http://<NEW_SERVER_IP>`.
+1. Open your browser at `http://<NEW_SERVER_IP>:8070` (or `http://51.77.117.66:8070`).
 2. Log in with your existing credentials.
 3. Check **Dashboard**, **Bank Accounts**, **Cash Accounts**, and **Ledger Reports** to confirm all balances and historical entries are intact.
 4. If using a domain (e.g. `ledger.yourcompany.com`), update your domain's DNS `A` record to point to `<NEW_SERVER_IP>`.
